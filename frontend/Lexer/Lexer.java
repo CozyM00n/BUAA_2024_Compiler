@@ -231,6 +231,10 @@ public class Lexer {
         else if (curChar == '"') { // StringConst
             curChar = getChar();
             while (curChar != '"') {
+                if (curChar == '\\') {
+                    content.append(curChar);
+                    curChar = getChar();
+                }
                 content.append(curChar);
                 curChar = getChar();
             }

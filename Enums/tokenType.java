@@ -13,6 +13,4 @@ public enum tokenType {
     LSS, LEQ, GRE, GEQ, EQL, NEQ, ASSIGN,
     SEMICN, COMMA, LPARENT, RPARENT, LBRACK, RBRACK, LBRACE, RBRACE,
     EOFTK
-
-    // todo tostring
 }

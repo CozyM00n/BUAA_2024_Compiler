@@ -6,3 +6,5 @@ out/
 
 # Ignore all .zip files
 *.zip
+
+*.txt
