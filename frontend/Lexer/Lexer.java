@@ -1,6 +1,8 @@
 package frontend.Lexer;
 
 import Enums.tokenType;
+import utils.Error;
+import utils.Printer;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,7 +23,6 @@ public class Lexer {
         this.curChar = (char) inputStream.read();
         this.lineno = 1;
         this.tokenList = new ArrayList<>();
-        // this.tokenStream = new TokenStream(new ArrayList<>());
         this.errorList = new ArrayList<>();
     }
 
@@ -158,7 +159,7 @@ public class Lexer {
                 content.append(curChar);
                 curChar = getChar();
             } else {
-                addError(); // 单词名称(Value) = "&"
+                Printer.addError(new Error(lineno, 'a'));// 单词名称(Value) = "&"
             }
             return new Token(tokenType.AND, content.toString(), lineno);
         } else if (curChar == '|') {
@@ -167,7 +168,7 @@ public class Lexer {
                 content.append(curChar);
                 curChar = getChar();
             } else {
-                addError(); // 单词名称(Value) = "|"
+                Printer.addError(new Error(lineno, 'a')); // 单词名称(Value) = "|"
             }
             return new Token(tokenType.OR, content.toString(), lineno);
         } else {
@@ -253,7 +254,7 @@ public class Lexer {
     public ArrayList<Token> getTokenList() throws IOException {
         if (tokenList.isEmpty()) {
             Token tk = next();
-            while (tk.getType() != tokenType.EOFTK) {
+            while (tk.getTokenType() != tokenType.EOFTK) {
                 tokenList.add(tk);
                 tk = next();
             }
@@ -274,20 +275,5 @@ public class Lexer {
 
     private void addError() {
         errorList.add(lineno);
-    }
-
-    public void printAns() throws IOException {
-        ArrayList<Token> tks = getTokenList();
-        if (errorList.isEmpty()) {
-            FileWriter writer = new FileWriter("lexer.txt");
-            for (Token tk: tks) {
-                writer.write(tk.toString() + "\n");
-            }
-            writer.close();
-        }
-        else {
-            for (int lineno : errorList)
-                printError(lineno, 'a');
-        }
     }
 }

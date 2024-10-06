@@ -1,6 +1,7 @@
 package frontend.Lexer;
 
 import Enums.tokenType;
+import utils.Printer;
 
 public class Token {
     private tokenType type; // 单词类别
@@ -13,7 +14,7 @@ public class Token {
         this.lineno = lineno;
     }
 
-    public tokenType getType() {
+    public tokenType getTokenType() {
         return type;
     }
 
