@@ -16,7 +16,8 @@ import java.util.ArrayList;
 
 public class NodeCreator {
     public static Node createNode(SyntaxVarType type, ArrayList<Node> children){
-        Printer.printSynVarType(type);
+        //Printer.printSynVarType(type);
+        Printer.addOutFileInfo(type.toString());
         switch (type) {
             case COMP_UNIT: return new CompUnit(type, children);
             // Func
@@ -64,14 +65,15 @@ public class NodeCreator {
             case UNARY_EXP: return new UnaryExp(type, children);
             case UNARY_OP: return new UnaryOp(type, children);
 
-            case TOKEN: return new TokenNode(type, children);
+            // case TOKEN: return new TokenNode(type, children);
             case BLOCK: return new Block(type, children);
             default: return null;
         }
     }
 
     public static Node createNode(Token token) {
-        Printer.printToken(token);
+        //Printer.printToken(token);
+        Printer.addOutFileInfo(token.toString());
         return new TokenNode(SyntaxVarType.TOKEN, null, token);
     }
 }

@@ -1,7 +1,7 @@
 package frontend.Parser;
 
 import Enums.SyntaxVarType;
-import Enums.tokenType;
+import Enums.TokenType;
 import frontend.Lexer.Token;
 import frontend.Lexer.TokenStream;
 import frontend.Nodes.Node;
@@ -24,7 +24,7 @@ public class Parser {
     }
 
     public boolean isBtype() {
-        return curToken.getTokenType() == tokenType.INTTK || curToken.getTokenType() == tokenType.CHARTK;
+        return curToken.getTokenType() == TokenType.INTTK || curToken.getTokenType() == TokenType.CHARTK;
     }
 
     public Node parseCompUnit() {
@@ -32,14 +32,14 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         while (true) {
             if (curToken == null) break;
-            if (tokenStream.look(1).getTokenType() == tokenType.MAINTK) {
+            if (tokenStream.look(1).getTokenType() == TokenType.MAINTK) {
                 children.add(parseMainFuncDef());
                 break;
             }
-            else if (curToken.getTokenType() == tokenType.CONSTTK) { // ConstDecl
+            else if (curToken.getTokenType() == TokenType.CONSTTK) { // ConstDecl
                 children.add(parseConstDecl());
             }
-            else if (tokenStream.look(2).getTokenType() == tokenType.LPARENT) { // '('
+            else if (tokenStream.look(2).getTokenType() == TokenType.LPARENT) { // '('
                 children.add(parseFuncDef());
             }
             else if (isBtype()) { // varDecl
@@ -56,13 +56,18 @@ public class Parser {
         children.add(NodeCreator.createNode(curToken)); read(); // read 'const'
         children.add(NodeCreator.createNode(curToken)); read(); // read Btype
         children.add(parseConstDef()); // ConstDef
-        while (curToken.getTokenType() == tokenType.COMMA) {
+        while (curToken.getTokenType() == TokenType.COMMA) {
             children.add(NodeCreator.createNode(curToken)); read(); // read ','
             children.add(parseConstDef());
         }
-        if (curToken.getTokenType() == tokenType.SEMICN) { // i
+        if (curToken.getTokenType() == TokenType.SEMICN) { // i
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.CONST_DECL, children);
     }
 
@@ -70,12 +75,17 @@ public class Parser {
         // ConstDef → Ident [ '[' ConstExp ']' ] '=' ConstInitVal // k
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read(); // parse Ident
-        if (curToken.getTokenType() == tokenType.LBRACK) {
+        if (curToken.getTokenType() == TokenType.LBRACK) {
             children.add(NodeCreator.createNode(curToken)); read(); // read [
             children.add(parseConstExp());
-            if (curToken.getTokenType() == tokenType.RBRACK) { // k 缺中括号
+            if (curToken.getTokenType() == TokenType.RBRACK) { // k 缺中括号
                 children.add(NodeCreator.createNode(curToken)); read();
-            } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'k')); }
+            } else {
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'k'));
+                Token addToken = new Token(TokenType.RBRACK, "]", lineno);
+                children.add(NodeCreator.createNode(addToken));
+            }
         }
         children.add(NodeCreator.createNode(curToken)); read(); // read '='
         children.add(parseConstInitVal());
@@ -92,19 +102,19 @@ public class Parser {
     public Node parseConstInitVal() {
         //  ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst
         ArrayList<Node> children = new ArrayList<>();
-        if (curToken.getTokenType() == tokenType.LBRACE) { // '{'
+        if (curToken.getTokenType() == TokenType.LBRACE) { // '{'
             children.add(NodeCreator.createNode(curToken)); read(); // read {
             if (isExpFirstSet()) { // ConstExp 的 FIRST
                 // parse ConstExp { ',' ConstExp }
                 children.add(parseConstExp());
-                while (curToken.getTokenType() == tokenType.COMMA) {
+                while (curToken.getTokenType() == TokenType.COMMA) {
                     children.add(NodeCreator.createNode(curToken)); read(); // read ','
                     children.add(parseConstExp());
                 }
             }
             children.add(NodeCreator.createNode(curToken)); read(); // read }
         }
-        else if (curToken.getTokenType() == tokenType.STRCON) {
+        else if (curToken.getTokenType() == TokenType.STRCON) {
             children.add(NodeCreator.createNode(curToken)); read();
         }
         else { // ConstExp
@@ -119,15 +129,18 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read(); // parse Btype
         children.add(parseVarDef());
-        while (curToken.getTokenType() == tokenType.COMMA) {
+        while (curToken.getTokenType() == TokenType.COMMA) {
             children.add(NodeCreator.createNode(curToken)); read();// read ','
             children.add(parseVarDef());
         }
         // parse ';'
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // i
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         return NodeCreator.createNode(SyntaxVarType.VAR_DECL, children);
     }
@@ -137,16 +150,19 @@ public class Parser {
         // VarDef → Ident [ '[' ConstExp ']' ]  [ '=' InitVal ]
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read(); // read Ident
-        if (curToken.getTokenType() == tokenType.LBRACK) { // 如果有 '[' ConstExp ']'
+        if (curToken.getTokenType() == TokenType.LBRACK) { // 如果有 '[' ConstExp ']'
             children.add(NodeCreator.createNode(curToken)); read(); // read [
             children.add(parseConstExp());
-            if (curToken.getTokenType() == tokenType.RBRACK) {
+            if (curToken.getTokenType() == TokenType.RBRACK) {
                 children.add(NodeCreator.createNode(curToken)); read(); // read ]
             } else {
-                Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'k'));
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'k'));
+                Token addToken = new Token(TokenType.RBRACK, "]", lineno);
+                children.add(NodeCreator.createNode(addToken));
             }
         }
-        if (curToken.getTokenType() == tokenType.ASSIGN) {
+        if (curToken.getTokenType() == TokenType.ASSIGN) {
             children.add(NodeCreator.createNode(curToken)); read(); // read =
             children.add(parseInitVal());
         }
@@ -156,18 +172,18 @@ public class Parser {
     public Node parseInitVal() {
         // InitVal → Exp | '{' [ Exp { ',' Exp } ] '}' | StringConst
         ArrayList<Node> children = new ArrayList<>();
-        if (curToken.getTokenType() == tokenType.LBRACE) { // '{'
+        if (curToken.getTokenType() == TokenType.LBRACE) { // '{'
             children.add(NodeCreator.createNode(curToken)); read(); // read {
             if (isExpFirstSet()) { // Exp 的 FIRST
                 children.add(parseExp());
-                while (curToken.getTokenType() == tokenType.COMMA) {
+                while (curToken.getTokenType() == TokenType.COMMA) {
                     children.add(NodeCreator.createNode(curToken)); read(); // read ','
                     children.add(parseExp());
                 }
             }
             children.add(NodeCreator.createNode(curToken)); read(); // read }
         }
-        else if (curToken.getTokenType() == tokenType.STRCON) { // StringConst
+        else if (curToken.getTokenType() == TokenType.STRCON) { // StringConst
             children.add(NodeCreator.createNode(curToken)); read();
         }
         else { // Exp
@@ -180,8 +196,8 @@ public class Parser {
         //  AddExp → MulExp { ('+' | '−') MulExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseMulExp());
-        while (curToken.getTokenType() == tokenType.PLUS || curToken.getTokenType() == tokenType.MINU) {
-            Printer.printSynVarType(SyntaxVarType.ADD_EXP);
+        while (curToken.getTokenType() == TokenType.PLUS || curToken.getTokenType() == TokenType.MINU) {
+            Printer.addOutFileInfo(SyntaxVarType.ADD_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // + / -
             children.add(parseMulExp());
         }
@@ -192,9 +208,9 @@ public class Parser {
         // MulExp → UnaryExp { ('*' | '/' | '%') UnaryExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseUnaryExp());
-        while (curToken.getTokenType() == tokenType.MULT ||
-                curToken.getTokenType() == tokenType.DIV || curToken.getTokenType() == tokenType.MOD) {
-            Printer.printSynVarType(SyntaxVarType.MUL_EXP);
+        while (curToken.getTokenType() == TokenType.MULT ||
+                curToken.getTokenType() == TokenType.DIV || curToken.getTokenType() == TokenType.MOD) {
+            Printer.addOutFileInfo(SyntaxVarType.MUL_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // '*' | '/' | '%'
             children.add(parseUnaryExp());
         }
@@ -204,17 +220,20 @@ public class Parser {
     public Node parseUnaryExp() {
         // UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp // j
         ArrayList<Node> children = new ArrayList<>();
-        if (curToken.getTokenType() == tokenType.IDENFR &&
-                tokenStream.look(1).getTokenType() == tokenType.LPARENT) { // Funccall
+        if (curToken.getTokenType() == TokenType.IDENFR &&
+                tokenStream.look(1).getTokenType() == TokenType.LPARENT) { // Funccall
             children.add(NodeCreator.createNode(curToken)); read(); // read Ident
             children.add(NodeCreator.createNode(curToken)); read(); // read (
             if (isExpFirstSet()) { // FuncRParams 的 FIRST set
                 children.add(parseFuncRParams());
             }
-            if (curToken.getTokenType() == tokenType.RPARENT) {
+            if (curToken.getTokenType() == TokenType.RPARENT) {
                 children.add(NodeCreator.createNode(curToken)); read();
             } else { // j 缺)
-                Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j'));
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'j'));
+                Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+                children.add(NodeCreator.createNode(addToken));
             }
         }
         else if (isUnaryOp()) {
@@ -230,22 +249,25 @@ public class Parser {
     public Node parsePrimaryExp() {
         // PrimaryExp → '(' Exp ')' | LVal | Number | Character// j 缺)
         ArrayList<Node> children = new ArrayList<>();
-        if (curToken.getTokenType() == tokenType.IDENFR) { // LVal
+        if (curToken.getTokenType() == TokenType.IDENFR) { // LVal
             children.add(parseLValExp());
         }
-        else if(curToken.getTokenType() == tokenType.LPARENT) { // '(' Exp ')'
+        else if(curToken.getTokenType() == TokenType.LPARENT) { // '(' Exp ')'
             children.add(NodeCreator.createNode(curToken)); read(); // read (
             children.add(parseExp());
-            if (curToken.getTokenType() == tokenType.RPARENT) {
+            if (curToken.getTokenType() == TokenType.RPARENT) {
                 children.add(NodeCreator.createNode(curToken)); read();
             } else { // j 缺)
-                Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j'));
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'j'));
+                Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+                children.add(NodeCreator.createNode(addToken));
             }
         }
-        else if (curToken.getTokenType() == tokenType.INTCON) {
+        else if (curToken.getTokenType() == TokenType.INTCON) {
             children.add(parseNumber());
         }
-        else if (curToken.getTokenType() == tokenType.CHRCON) {
+        else if (curToken.getTokenType() == TokenType.CHRCON) {
             children.add(parseCharacter());
         }
         return NodeCreator.createNode(SyntaxVarType.PRIM_EXP, children);
@@ -262,14 +284,17 @@ public class Parser {
         //  LVal → Ident ['[' Exp ']'] // k 缺]
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();  // read Ident
-        if (curToken.getTokenType() == tokenType.LBRACK) {
+        if (curToken.getTokenType() == TokenType.LBRACK) {
             children.add(NodeCreator.createNode(curToken)); read(); // read [
             Node node = parseExp();
             children.add(node);
-            if (curToken.getTokenType() == tokenType.RBRACK) {
+            if (curToken.getTokenType() == TokenType.RBRACK) {
                 children.add(NodeCreator.createNode(curToken)); read();
             } else { // k 缺中括号
-                Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'k'));
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'k'));
+                Token addToken = new Token(TokenType.RBRACK, "]", lineno);
+                children.add(NodeCreator.createNode(addToken));
             }
         }
         return NodeCreator.createNode(SyntaxVarType.LVAL_EXP, children);
@@ -288,10 +313,13 @@ public class Parser {
             children.add(parseFuncFParams());
         }
         // parse ')'
-        if (curToken.getTokenType() == tokenType.RPARENT) {
+        if (curToken.getTokenType() == TokenType.RPARENT) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // err j
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         children.add(parseBlock());
         return NodeCreator.createNode(SyntaxVarType.FUNC_DEF, children);
@@ -303,10 +331,13 @@ public class Parser {
         for (int i = 0; i < 3; i++) {
             children.add(NodeCreator.createNode(curToken)); read(); // int main (
         }
-        if (curToken.getTokenType() == tokenType.RPARENT) {
+        if (curToken.getTokenType() == TokenType.RPARENT) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // j 缺)
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         children.add(parseBlock());
         return NodeCreator.createNode(SyntaxVarType.MAIN_FUNC_DEF, children);
@@ -324,12 +355,15 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();
         children.add(NodeCreator.createNode(curToken)); read();
-        if (curToken.getTokenType() == tokenType.LBRACK) {
+        if (curToken.getTokenType() == TokenType.LBRACK) {
             children.add(NodeCreator.createNode(curToken)); read(); // [
-            if (curToken.getTokenType() == tokenType.RBRACK) {
+            if (curToken.getTokenType() == TokenType.RBRACK) {
                 children.add(NodeCreator.createNode(curToken)); read();
             } else { // k 缺中括号
-                Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'k'));
+                int lineno = tokenStream.look(-1).getLineno();
+                Printer.addError(new Error(lineno, 'k'));
+                Token addToken = new Token(TokenType.RBRACK, "]", lineno);
+                children.add(NodeCreator.createNode(addToken));
             }
         }
         return NodeCreator.createNode(SyntaxVarType.FUNC_FPARA, children);
@@ -340,7 +374,7 @@ public class Parser {
         // 函数形参表 FuncFParams → FuncFParam { ',' FuncFParam }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseFuncFParam());
-        while (curToken.getTokenType() == tokenType.COMMA) {
+        while (curToken.getTokenType() == TokenType.COMMA) {
             children.add(NodeCreator.createNode(curToken)); read();  // read ','
             children.add(parseFuncFParam());
         }
@@ -351,7 +385,7 @@ public class Parser {
         // 函数实参表 FuncRParams → Exp { ',' Exp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseExp());
-        while (curToken.getTokenType() == tokenType.COMMA) {
+        while (curToken.getTokenType() == TokenType.COMMA) {
             children.add(NodeCreator.createNode(curToken)); read();  // read ','
             children.add(parseExp());
         }
@@ -362,8 +396,8 @@ public class Parser {
         //  Block → '{' {   ConstDecl | VarDecl | Stmt } '}'
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read(); // {
-        while (curToken.getTokenType() !=tokenType.RBRACE) { // Decl => const / int / char
-            if (curToken.getTokenType() == tokenType.CONSTTK) {
+        while (curToken.getTokenType() != TokenType.RBRACE) { // Decl => const / int / char
+            if (curToken.getTokenType() == TokenType.CONSTTK) {
                 children.add(parseConstDecl());
             } else if (isBtype()) {
                 children.add(parseVarDecl());
@@ -376,32 +410,32 @@ public class Parser {
     }
 
     public Node parseStmt() {
-        if (curToken.getTokenType() == tokenType.LBRACE) { // {
+        if (curToken.getTokenType() == TokenType.LBRACE) { // {
             return parseBlockStmt();
-        } else if (curToken.getTokenType() == tokenType.IFTK) {
+        } else if (curToken.getTokenType() == TokenType.IFTK) {
             return parseIfStmt();
-        } else if (curToken.getTokenType() == tokenType.FORTK) {
+        } else if (curToken.getTokenType() == TokenType.FORTK) {
             return parseForBodyStmt();
-        } else if (curToken.getTokenType() == tokenType.BREAKTK) {
+        } else if (curToken.getTokenType() == TokenType.BREAKTK) {
             return parseBreakStmt();
-        } else if (curToken.getTokenType() == tokenType.CONTINUETK) {
+        } else if (curToken.getTokenType() == TokenType.CONTINUETK) {
             return parseContinueStmt();
-        } else if (curToken.getTokenType() == tokenType.RETURNTK) {
+        } else if (curToken.getTokenType() == TokenType.RETURNTK) {
             return parseReturnStmt();
-        } else if (curToken.getTokenType() == tokenType.PRINTFTK) {
+        } else if (curToken.getTokenType() == TokenType.PRINTFTK) {
             return parsePrintfStmt();
-        } else if (curToken.getTokenType() == tokenType.SEMICN) { // ;
+        } else if (curToken.getTokenType() == TokenType.SEMICN) { // ;
             return parseExpStmt();
         } else {
             Printer.enable = false;
             tokenStream.logPosition();
             parseExp();
             Printer.enable = true;
-            if (curToken.getTokenType() == tokenType.ASSIGN) {
-                if (tokenStream.look(1).getTokenType() == tokenType.GETINTTK) {
+            if (curToken.getTokenType() == TokenType.ASSIGN) {
+                if (tokenStream.look(1).getTokenType() == TokenType.GETINTTK) {
                     curToken = tokenStream.gotoLogPosition();
                     return parseGetIntStmt();
-                } else if (tokenStream.look(1).getTokenType() == tokenType.GETCHARTK) {
+                } else if (tokenStream.look(1).getTokenType() == TokenType.GETCHARTK) {
                     curToken = tokenStream.gotoLogPosition();
                     return parseGetCharStmt();
                 } else {
@@ -421,9 +455,14 @@ public class Parser {
         if (isExpFirstSet()) {
             children.add(parseExp());
         }
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.EXP_STMT, children);
     }
 
@@ -433,9 +472,14 @@ public class Parser {
         children.add(parseLValExp());
         children.add(NodeCreator.createNode(curToken)); read(); // =
         children.add(parseExp());
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.ASSIGN_STMT, children);
     }
 
@@ -446,13 +490,23 @@ public class Parser {
         for (int i = 0; i < 3; i++) {
             children.add(NodeCreator.createNode(curToken)); read(); // =,getint,(
         }
-        if (curToken.getTokenType() == tokenType.RPARENT) { // j
+        if (curToken.getTokenType() == TokenType.RPARENT) { // j
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         // i
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.GET_INT_STMT, children);
     }
 
@@ -463,13 +517,22 @@ public class Parser {
         for (int i = 0; i < 3; i++) {
             children.add(NodeCreator.createNode(curToken)); read(); // =,getchar,(
         }
-        if (curToken.getTokenType() == tokenType.RPARENT) { // j
+        if (curToken.getTokenType() == TokenType.RPARENT) { // j
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j')); }
+        } else { int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         // i
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.GET_CHAR_STMT, children);
     }
 
@@ -486,13 +549,16 @@ public class Parser {
         children.add(NodeCreator.createNode(curToken)); read();
         children.add(NodeCreator.createNode(curToken)); read();
         children.add(parseCondExp());
-        if (curToken.getTokenType() == tokenType.RPARENT) {
+        if (curToken.getTokenType() == TokenType.RPARENT) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // j 缺)
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         children.add(parseStmt());
-        if (curToken.getTokenType() == tokenType.ELSETK) {
+        if (curToken.getTokenType() == TokenType.ELSETK) {
             children.add(NodeCreator.createNode(curToken)); read();
             children.add(parseStmt());
         }
@@ -504,7 +570,7 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();
         children.add(NodeCreator.createNode(curToken)); read();
-        if (curToken.getTokenType() == tokenType.IDENFR) { // ForStmt 的 FIRST
+        if (curToken.getTokenType() == TokenType.IDENFR) { // ForStmt 的 FIRST
             children.add(parseForStmt());
         }
         children.add(NodeCreator.createNode(curToken)); read(); // read ';'
@@ -512,7 +578,7 @@ public class Parser {
             children.add(parseCondExp());
         }
         children.add(NodeCreator.createNode(curToken)); read(); // read ';'
-        if (curToken.getTokenType() == tokenType.IDENFR) { // ForStmt 的 FIRST
+        if (curToken.getTokenType() == TokenType.IDENFR) { // ForStmt 的 FIRST
             children.add(parseForStmt());
         }
         children.add(NodeCreator.createNode(curToken)); read(); // read ')'
@@ -540,10 +606,13 @@ public class Parser {
         //  'break' ';'
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // err i
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         return NodeCreator.createNode(SyntaxVarType.BREAK_STMT, children);
     }
@@ -552,10 +621,13 @@ public class Parser {
         //  'continue' ';'
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // err i
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         return NodeCreator.createNode(SyntaxVarType.CONTINUE_STMT, children);
     }
@@ -568,10 +640,13 @@ public class Parser {
             children.add(parseExp());
         }
         // parse ';'
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
         } else { // err i
-            Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i'));
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
         }
         return NodeCreator.createNode(SyntaxVarType.RETURN_STMT, children);
     }
@@ -581,18 +656,28 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         for (int i = 0 ; i < 3; i++) // 'printf'  '('   StringConst
             { children.add(NodeCreator.createNode(curToken)); read(); }
-        while (curToken.getTokenType() == tokenType.COMMA) {
+        while (curToken.getTokenType() == TokenType.COMMA) {
             children.add(NodeCreator.createNode(curToken)); read();
             children.add(parseExp());
         }
         // j
-        if (curToken.getTokenType() == tokenType.RPARENT) {
+        if (curToken.getTokenType() == TokenType.RPARENT) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'j')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'j'));
+            Token addToken = new Token(TokenType.RPARENT, ")", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         // i
-        if (curToken.getTokenType() == tokenType.SEMICN) {
+        if (curToken.getTokenType() == TokenType.SEMICN) {
             children.add(NodeCreator.createNode(curToken)); read();
-        } else { Printer.addError(new Error(tokenStream.look(-1).getLineno(), 'i')); }
+        } else {
+            int lineno = tokenStream.look(-1).getLineno();
+            Printer.addError(new Error(lineno, 'i'));
+            Token addToken = new Token(TokenType.SEMICN, ";", lineno);
+            children.add(NodeCreator.createNode(addToken));
+        }
         return NodeCreator.createNode(SyntaxVarType.PRINTF_STMT, children);
     }
 
@@ -601,8 +686,8 @@ public class Parser {
         // LOrExp → LAndExp { '||' LAndExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseLAndExp());
-        while (curToken.getTokenType() == tokenType.OR) {
-            Printer.printSynVarType(SyntaxVarType.LOR_EXP);
+        while (curToken.getTokenType() == TokenType.OR) {
+            Printer.addOutFileInfo(SyntaxVarType.LOR_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read ||
             children.add(parseLAndExp());
         }
@@ -614,8 +699,8 @@ public class Parser {
         //  LAndExp → EqExp { '&&' EqExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseEqExp());
-        while (curToken.getTokenType() == tokenType.AND) {
-            Printer.printSynVarType(SyntaxVarType.LAND_EXP);
+        while (curToken.getTokenType() == TokenType.AND) {
+            Printer.addOutFileInfo(SyntaxVarType.LAND_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read &&
             children.add(parseEqExp());
         }
@@ -626,8 +711,8 @@ public class Parser {
         // 相等性表达式 EqExp → RelExp { '==' | '!=') RelExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseRelExp());
-        while (curToken.getTokenType() == tokenType.EQL || curToken.getTokenType() == tokenType.NEQ) {
-            Printer.printSynVarType(SyntaxVarType.EQ_EXP);
+        while (curToken.getTokenType() == TokenType.EQL || curToken.getTokenType() == TokenType.NEQ) {
+            Printer.addOutFileInfo(SyntaxVarType.EQ_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read
             children.add(parseRelExp());
         }
@@ -638,9 +723,9 @@ public class Parser {
         // 关系表达式 RelExp → AddExp { ('<' | '>' | '<=' | '>=') AddExp }
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseAddExp());
-        while (curToken.getTokenType() == tokenType.LSS || curToken.getTokenType() == tokenType.GRE ||
-                curToken.getTokenType() == tokenType.LEQ || curToken.getTokenType() == tokenType.GEQ) {
-            Printer.printSynVarType(SyntaxVarType.REL_EXP);
+        while (curToken.getTokenType() == TokenType.LSS || curToken.getTokenType() == TokenType.GRE ||
+                curToken.getTokenType() == TokenType.LEQ || curToken.getTokenType() == TokenType.GEQ) {
+            Printer.addOutFileInfo(SyntaxVarType.REL_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read
             children.add(parseAddExp());
         }
@@ -669,13 +754,13 @@ public class Parser {
     }
 
     public boolean isUnaryOp() {
-        return curToken.getTokenType() == tokenType.PLUS ||
-                curToken.getTokenType() == tokenType.MINU || curToken.getTokenType() == tokenType.NOT;
+        return curToken.getTokenType() == TokenType.PLUS ||
+                curToken.getTokenType() == TokenType.MINU || curToken.getTokenType() == TokenType.NOT;
     }
 
     public boolean isExpFirstSet() {
-        return isUnaryOp() || curToken.getTokenType() == tokenType.IDENFR ||
-                curToken.getTokenType() == tokenType.LPARENT ||
-                curToken.getTokenType() == tokenType.INTCON || curToken.getTokenType() == tokenType.CHRCON;
+        return isUnaryOp() || curToken.getTokenType() == TokenType.IDENFR ||
+                curToken.getTokenType() == TokenType.LPARENT ||
+                curToken.getTokenType() == TokenType.INTCON || curToken.getTokenType() == TokenType.CHRCON;
     }
 }

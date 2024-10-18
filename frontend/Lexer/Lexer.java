@@ -1,6 +1,6 @@
 package frontend.Lexer;
 
-import Enums.tokenType;
+import Enums.TokenType;
 import utils.Error;
 import utils.Printer;
 
@@ -42,57 +42,57 @@ public class Lexer {
         return isEnglishLetter(ch) || Character.isDigit(ch);
     }
 
-    private boolean isEnd() {
+    public boolean isEnd() {
         return curChar == '\uFFFF';
     }
 
-    private boolean isSpace() throws IOException {
+    public boolean isSpace() throws IOException {
         return curChar == '\t' || curChar == ' ' || curChar == '\0'
                 || isNewLine();
     }
 
-    private boolean isNewLine() throws IOException {
+    public boolean isNewLine() throws IOException {
         if (curChar == '\r') { curChar = getChar(); }
         return curChar == '\n';
     }
 
-    private void skipSpace() throws IOException {
+    public void skipSpace() throws IOException {
         while (isSpace()) {
             if (curChar == '\n') lineno++;
             curChar = getChar();
         }
     }
 
-    private tokenType getIdentType(String ident) {
+    public TokenType getIdentType(String ident) {
         switch (ident) {
-            case "main": return tokenType.MAINTK;
-            case "const": return tokenType.CONSTTK;
-            case "int": return tokenType.INTTK;
-            case "char": return tokenType.CHARTK;
-            case "break": return tokenType.BREAKTK;
-            case "continue": return tokenType.CONTINUETK;
-            case "if": return tokenType.IFTK;
-            case "else": return tokenType.ELSETK;
-            case "for": return tokenType.FORTK;
-            case "getint": return tokenType.GETINTTK;
-            case "getchar": return tokenType.GETCHARTK;
-            case "printf": return tokenType.PRINTFTK;
-            case "return": return tokenType.RETURNTK;
-            case "void": return tokenType.VOIDTK;
-            default:return tokenType.IDENFR;
+            case "main": return TokenType.MAINTK;
+            case "const": return TokenType.CONSTTK;
+            case "int": return TokenType.INTTK;
+            case "char": return TokenType.CHARTK;
+            case "break": return TokenType.BREAKTK;
+            case "continue": return TokenType.CONTINUETK;
+            case "if": return TokenType.IFTK;
+            case "else": return TokenType.ELSETK;
+            case "for": return TokenType.FORTK;
+            case "getint": return TokenType.GETINTTK;
+            case "getchar": return TokenType.GETCHARTK;
+            case "printf": return TokenType.PRINTFTK;
+            case "return": return TokenType.RETURNTK;
+            case "void": return TokenType.VOIDTK;
+            default:return TokenType.IDENFR;
         }
     }
 
-    private Token recgonizeSign(StringBuilder content) throws IOException {
+    public Token recgonizeSign(StringBuilder content) throws IOException {
         if (curChar == '!') {
             curChar = getChar();
             if (curChar == '=') { // !=
                 content.append(curChar);
                 curChar = getChar(); // 预先读一个字符？？
-                return new Token(tokenType.NEQ, content.toString(), lineno);
+                return new Token(TokenType.NEQ, content.toString(), lineno);
             }
             else {
-                return new Token(tokenType.NOT, content.toString(), lineno);
+                return new Token(TokenType.NOT, content.toString(), lineno);
             }
         }
         else if (curChar == '<') {
@@ -100,9 +100,9 @@ public class Lexer {
             if (curChar == '=') {
                 content.append(curChar);
                 curChar = getChar();
-                return new Token(tokenType.LEQ, content.toString(), lineno);
+                return new Token(TokenType.LEQ, content.toString(), lineno);
             } else {
-                return new Token(tokenType.LSS, content.toString(), lineno);
+                return new Token(TokenType.LSS, content.toString(), lineno);
             }
         }
         else if (curChar == '>') {
@@ -110,16 +110,16 @@ public class Lexer {
             if (curChar == '=') {
                 content.append(curChar);
                 curChar = getChar();
-                return new Token(tokenType.GEQ, content.toString(), lineno);
-            } else { return new Token(tokenType.GRE, content.toString(), lineno); }
+                return new Token(TokenType.GEQ, content.toString(), lineno);
+            } else { return new Token(TokenType.GRE, content.toString(), lineno); }
         }
         else if (curChar == '=') {
             curChar = getChar();
             if (curChar == '=') { // ==
                 content.append(curChar);
                 curChar = getChar();
-                return new Token(tokenType.EQL, content.toString(), lineno);
-            } else { return new Token(tokenType.ASSIGN, content.toString(), lineno); }
+                return new Token(TokenType.EQL, content.toString(), lineno);
+            } else { return new Token(TokenType.ASSIGN, content.toString(), lineno); }
         }
         else if (curChar == '/') {
             curChar = getChar();
@@ -130,7 +130,7 @@ public class Lexer {
                         lineno++;
                         break;
                     } else if (isEnd()){
-                        return new Token(tokenType.EOFTK, content.toString(), lineno); // content 内容？
+                        return new Token(TokenType.EOFTK, content.toString(), lineno); // content 内容？
                     }
                     curChar = getChar();
                 }
@@ -141,7 +141,7 @@ public class Lexer {
                 while (true) {
                     while (curChar != '*') {
                         if (isNewLine()) lineno++;
-                        if (isEnd()) return new Token(tokenType.EOFTK, content.toString(), lineno);// content 内容？
+                        if (isEnd()) return new Token(TokenType.EOFTK, content.toString(), lineno);// content 内容？
                         curChar = getChar();
                     }
                     while (curChar == '*') curChar = getChar();
@@ -150,7 +150,7 @@ public class Lexer {
                 curChar = getChar(); // */ 的下一个字符
                 return next();
             } else {
-                return new Token(tokenType.DIV, content.toString(), lineno);
+                return new Token(TokenType.DIV, content.toString(), lineno);
             }
         }
         else if (curChar == '&') {
@@ -161,7 +161,7 @@ public class Lexer {
             } else {
                 Printer.addError(new Error(lineno, 'a'));// 单词名称(Value) = "&"
             }
-            return new Token(tokenType.AND, content.toString(), lineno);
+            return new Token(TokenType.AND, content.toString(), lineno);
         } else if (curChar == '|') {
             curChar = getChar();
             if (curChar == '|') { // ||
@@ -170,23 +170,23 @@ public class Lexer {
             } else {
                 Printer.addError(new Error(lineno, 'a')); // 单词名称(Value) = "|"
             }
-            return new Token(tokenType.OR, content.toString(), lineno);
+            return new Token(TokenType.OR, content.toString(), lineno);
         } else {
             char ch = curChar;
             curChar = getChar();
             switch (ch) {
-                case '+': return new Token(tokenType.PLUS, content.toString(), lineno);
-                case '-': return new Token(tokenType.MINU, content.toString(), lineno);
-                case '*': return new Token(tokenType.MULT, content.toString(), lineno);
-                case '%': return new Token(tokenType.MOD, content.toString(), lineno);
-                case ';': return new Token(tokenType.SEMICN, content.toString(), lineno);
-                case ',': return new Token(tokenType.COMMA, content.toString(), lineno);
-                case '(': return new Token(tokenType.LPARENT, content.toString(), lineno);
-                case ')': return new Token(tokenType.RPARENT, content.toString(), lineno);
-                case '[': return new Token(tokenType.LBRACK, content.toString(), lineno);
-                case ']': return new Token(tokenType.RBRACK, content.toString(), lineno);
-                case '{': return new Token(tokenType.LBRACE, content.toString(), lineno);
-                case '}': return new Token(tokenType.RBRACE, content.toString(), lineno);
+                case '+': return new Token(TokenType.PLUS, content.toString(), lineno);
+                case '-': return new Token(TokenType.MINU, content.toString(), lineno);
+                case '*': return new Token(TokenType.MULT, content.toString(), lineno);
+                case '%': return new Token(TokenType.MOD, content.toString(), lineno);
+                case ';': return new Token(TokenType.SEMICN, content.toString(), lineno);
+                case ',': return new Token(TokenType.COMMA, content.toString(), lineno);
+                case '(': return new Token(TokenType.LPARENT, content.toString(), lineno);
+                case ')': return new Token(TokenType.RPARENT, content.toString(), lineno);
+                case '[': return new Token(TokenType.LBRACK, content.toString(), lineno);
+                case ']': return new Token(TokenType.RBRACK, content.toString(), lineno);
+                case '{': return new Token(TokenType.LBRACE, content.toString(), lineno);
+                case '}': return new Token(TokenType.RBRACE, content.toString(), lineno);
             }
         }
         System.out.println("error: undifined ch: " + curChar);
@@ -205,7 +205,7 @@ public class Lexer {
             }
             // unGetChar();
             String ident = content.toString();
-            tokenType type = getIdentType(ident);
+            TokenType type = getIdentType(ident);
             return new Token(type, ident, lineno);
         }
         else if (Character.isDigit(curChar)) {
@@ -215,7 +215,7 @@ public class Lexer {
                 curChar = getChar();
             }
             // unGetChar();
-            return new Token(tokenType.INTCON, content.toString(), lineno);
+            return new Token(TokenType.INTCON, content.toString(), lineno);
         }
         else if (curChar == '\'') { // CharConst
             curChar = getChar(); // ASCII
@@ -227,7 +227,7 @@ public class Lexer {
             curChar = getChar();
             content.append(curChar);
             curChar = getChar(); // 提前读
-            return new Token(tokenType.CHRCON, content.toString(), lineno);
+            return new Token(TokenType.CHRCON, content.toString(), lineno);
         }
         else if (curChar == '"') { // StringConst
             curChar = getChar();
@@ -241,10 +241,10 @@ public class Lexer {
             }
             content.append(curChar); // "
             curChar = getChar();
-            return new Token(tokenType.STRCON, content.toString(), lineno);
+            return new Token(TokenType.STRCON, content.toString(), lineno);
         }
         else if (isEnd()) {
-            return new Token(tokenType.EOFTK, content.toString(), lineno);
+            return new Token(TokenType.EOFTK, content.toString(), lineno);
         }
         else {
             return recgonizeSign(content);
@@ -254,7 +254,7 @@ public class Lexer {
     public ArrayList<Token> getTokenList() throws IOException {
         if (tokenList.isEmpty()) {
             Token tk = next();
-            while (tk.getTokenType() != tokenType.EOFTK) {
+            while (tk.getTokenType() != TokenType.EOFTK) {
                 tokenList.add(tk);
                 tk = next();
             }
@@ -267,13 +267,13 @@ public class Lexer {
         return tokenStream;
     }
 
-    private void printError(int lineno, char errorType) throws IOException {
+    public void printError(int lineno, char errorType) throws IOException {
         FileWriter writer = new FileWriter("error.txt");
         writer.write(lineno + " " + errorType);
         writer.close();
     }
 
-    private void addError() {
+    public void addError() {
         errorList.add(lineno);
     }
 }

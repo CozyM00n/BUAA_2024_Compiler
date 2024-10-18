@@ -9,15 +9,14 @@ import java.io.PushbackInputStream;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
-        Printer.initPrinter();
-
-        String task = "SA";
+        Printer.initPrinter("Symbol.txt", 3);
+        String task = "ST";
 
         if (task.equals("LA")) {
             FileInputStream fin = new FileInputStream("testfile.txt");
             PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
             Lexer lexer = new Lexer(inputStream);
-            Printer.printErrors();
+            Printer.printLA(lexer.getTokenList());
         } else if (task.equals("SA")) {
             FileInputStream fin = new FileInputStream("testfile.txt");
             PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
@@ -25,6 +24,14 @@ public class Compiler {
             Parser parser = new Parser(lexer.getTokenStream());
             Node node = parser.parseCompUnit();
             Printer.printErrors();
+        } else if (task.equals("ST")) {
+            FileInputStream fin = new FileInputStream("testfile.txt");
+            PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
+            Lexer lexer = new Lexer(inputStream);
+            Parser parser = new Parser(lexer.getTokenStream());
+            Node compUnit = parser.parseCompUnit();
+            compUnit.checkError();
+            Printer.printSymbol();
         }
         Printer.closePrinter();
     }

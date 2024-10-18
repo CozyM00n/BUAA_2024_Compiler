@@ -64,6 +64,6 @@ public enum SyntaxVarType {
 
     @Override
     public String toString() {
-        return "<" + typeName + ">\n";
+        return "<" + typeName + ">";
     }
 }

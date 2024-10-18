@@ -1,6 +1,6 @@
 package Enums;
 
-public enum tokenType {
+public enum TokenType {
     IDENFR, INTCON, STRCON, CHRCON,
     MAINTK, CONSTTK,
     INTTK, CHARTK, VOIDTK,
