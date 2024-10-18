@@ -28,6 +28,9 @@ public class VarDef extends Node {
     public VarSymbol createSymbol() {
         String symbolName = ((TokenNode) children.get(0)).getTokenName();
         TypeInfo typeInfo = new TypeInfo(judgeIsArray(), SymbolManager.getInstance().isInt());
+//        if (((TokenNode)children.get(0)).getTokenName().equals("a5")) {
+//            System.out.println(judgeIsArray());
+//        }
         return new VarSymbol(typeInfo, symbolName);
     }
 

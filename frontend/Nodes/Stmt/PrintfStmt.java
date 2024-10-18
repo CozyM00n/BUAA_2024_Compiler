@@ -36,6 +36,8 @@ public class PrintfStmt extends Stmt{
                 cnt++;
             }
         }
+//        System.out.println("cnt = " + cnt);
+//        System.out.println("size = " + expList.size());
         if (cnt != expList.size()) {
             Error error = new Error(((TokenNode)children.get(0)).getLino(), 'l');
             Printer.addError(error);

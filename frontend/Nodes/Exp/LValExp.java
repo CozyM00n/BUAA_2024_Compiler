@@ -41,9 +41,12 @@ public class LValExp extends Node {
         if (symbol == null) return null;
         TypeInfo typeInfo = symbol.getTypeInfo();
         if (children.size() >= 2) {
-            if (!typeInfo.getIsArray()) System.out.println("err: LvalExp getTypeInfo");
-            typeInfo.setIsArray(false);
+            if (!typeInfo.getIsArray()) {
+                System.out.println("err: LvalExp getTypeInfo");
+            }
+            return new TypeInfo(false, typeInfo.getIsInt());
+        } else {
+            return typeInfo; // 实际调用的是子类的方法
         }
-        return typeInfo; // 实际调用的是子类的方法
     }
 }

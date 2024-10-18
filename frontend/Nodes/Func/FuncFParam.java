@@ -22,7 +22,7 @@ public class FuncFParam extends Node {
     }
 
     public boolean judgeIsArray() {
-        return children.size() >= 3;
+        return children.size() == 4;
     }
 
     public boolean judgeIsInt() {

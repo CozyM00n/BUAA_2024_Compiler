@@ -26,6 +26,7 @@ public class MainFuncDef extends Node {
     @Override
     public void checkError() {
         this.funcSymbol = createSymbol();
+        SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
         SymbolManager.getInstance().pushBlock();
         super.checkError();
         SymbolManager.getInstance().popBlock();
