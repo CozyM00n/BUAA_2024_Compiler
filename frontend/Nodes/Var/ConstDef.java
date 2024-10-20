@@ -25,7 +25,7 @@ public class ConstDef extends Node {
 
     public ConstSymbol createSymbol() {
         String symbolName = ((TokenNode) children.get(0)).getTokenName();
-        TypeInfo typeInfo = new TypeInfo(judgeIsArray(), SymbolManager.getInstance().isInt());
+        TypeInfo typeInfo = new TypeInfo(judgeIsArray(), SymbolManager.getInstance().getDeclaredType());
         return new ConstSymbol(typeInfo, symbolName);
     }
 

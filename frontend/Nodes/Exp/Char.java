@@ -14,6 +14,6 @@ public class Char extends Node {
 
     @Override
     public TypeInfo getTypeInfo() {
-        return new TypeInfo(false, false);
+        return new TypeInfo(false, "Char");
     }
 }

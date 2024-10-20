@@ -1,9 +1,7 @@
 package frontend.Nodes;
 
 import Enums.SyntaxVarType;
-import Enums.TokenType;
 import frontend.Symbol.TypeInfo;
-import org.omg.CORBA.TIMEOUT;
 
 import java.util.ArrayList;
 

@@ -13,10 +13,17 @@ public class VarDecl extends Node {
         super(type, children);
     }
 
+    public String judgeType() {
+        if (((TokenNode)children.get(0)).getTokenType() == TokenType.INTTK) {
+            return "Int";
+        } else {
+            return "Char";
+        }
+    }
+
     @Override
     public void checkError() {
-        boolean isInt = ((TokenNode) children.get(0)).getTokenType() == TokenType.INTTK;
-        SymbolManager.getInstance().setIsInt(isInt);
+        SymbolManager.getInstance().setDeclaredType(judgeType());
         super.checkError();
     }
 }

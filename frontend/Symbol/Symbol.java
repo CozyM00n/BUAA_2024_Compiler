@@ -21,7 +21,6 @@ public class Symbol {
     }
 
     public TypeInfo getTypeInfo() {
-        System.out.println("error: Symbol!");
         return null;
     }
 }

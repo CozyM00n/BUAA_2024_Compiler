@@ -9,7 +9,7 @@ public class SymbolManager {
     private Stack<SymbolTable> symbolTableStack;
     private FuncSymbol curFuncSymbol;
     private boolean isGlobal;
-    private boolean isInt;
+    private String declaredType;
     private int nextBlockNum;
     private int loopDepth;
 
@@ -33,7 +33,7 @@ public class SymbolManager {
 
     public void popBlock() {
         SymbolTable topTable = symbolTableStack.pop();
-        Printer.addOutFileInfo(topTable.getTableNum(), topTable.toStrings());
+        Printer.addString(topTable.getTableNum(), topTable.toStrings());
     }
 
     public void enterLoop() {
@@ -63,12 +63,12 @@ public class SymbolManager {
         return  (symbol instanceof ConstSymbol); // 若为null也返回false
     }
 
-    public void setIsInt(boolean isInt) {
-        this.isInt = isInt;
+    public String getDeclaredType() {
+        return declaredType;
     }
 
-    public boolean isInt() {
-        return isInt;
+    public void setDeclaredType(String declaredType) {
+        this.declaredType = declaredType;
     }
 
     public int getLoopDepth() {

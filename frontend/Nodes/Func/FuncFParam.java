@@ -25,12 +25,16 @@ public class FuncFParam extends Node {
         return children.size() == 4;
     }
 
-    public boolean judgeIsInt() {
-        return ((TokenNode)children.get(0)).getTokenType() == TokenType.INTTK;
+    public String judgeType() {
+        if (((TokenNode)children.get(0)).getTokenType() == TokenType.INTTK) {
+            return "Int";
+        } else {
+            return "Char";
+        }
     }
 
     public VarSymbol createSymbol() {
-        TypeInfo typeInfo = new TypeInfo(judgeIsArray(), judgeIsInt());
+        TypeInfo typeInfo = new TypeInfo(judgeIsArray(), judgeType());
         return new VarSymbol(typeInfo, ((TokenNode) children.get(1)).getTokenName());
     }
 

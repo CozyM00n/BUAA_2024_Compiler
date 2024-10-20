@@ -44,7 +44,7 @@ public class LValExp extends Node {
             if (!typeInfo.getIsArray()) {
                 System.out.println("err: LvalExp getTypeInfo");
             }
-            return new TypeInfo(false, typeInfo.getIsInt());
+            return new TypeInfo(false, typeInfo.getType());
         } else {
             return typeInfo; // 实际调用的是子类的方法
         }

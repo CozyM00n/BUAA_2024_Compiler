@@ -197,7 +197,7 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseMulExp());
         while (curToken.getTokenType() == TokenType.PLUS || curToken.getTokenType() == TokenType.MINU) {
-            Printer.addOutFileInfo(SyntaxVarType.ADD_EXP.toString());
+            Printer.addString(SyntaxVarType.ADD_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // + / -
             children.add(parseMulExp());
         }
@@ -210,7 +210,7 @@ public class Parser {
         children.add(parseUnaryExp());
         while (curToken.getTokenType() == TokenType.MULT ||
                 curToken.getTokenType() == TokenType.DIV || curToken.getTokenType() == TokenType.MOD) {
-            Printer.addOutFileInfo(SyntaxVarType.MUL_EXP.toString());
+            Printer.addString(SyntaxVarType.MUL_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // '*' | '/' | '%'
             children.add(parseUnaryExp());
         }
@@ -687,7 +687,7 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseLAndExp());
         while (curToken.getTokenType() == TokenType.OR) {
-            Printer.addOutFileInfo(SyntaxVarType.LOR_EXP.toString());
+            Printer.addString(SyntaxVarType.LOR_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read ||
             children.add(parseLAndExp());
         }
@@ -700,7 +700,7 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseEqExp());
         while (curToken.getTokenType() == TokenType.AND) {
-            Printer.addOutFileInfo(SyntaxVarType.LAND_EXP.toString());
+            Printer.addString(SyntaxVarType.LAND_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read &&
             children.add(parseEqExp());
         }
@@ -712,7 +712,7 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(parseRelExp());
         while (curToken.getTokenType() == TokenType.EQL || curToken.getTokenType() == TokenType.NEQ) {
-            Printer.addOutFileInfo(SyntaxVarType.EQ_EXP.toString());
+            Printer.addString(SyntaxVarType.EQ_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read
             children.add(parseRelExp());
         }
@@ -725,7 +725,7 @@ public class Parser {
         children.add(parseAddExp());
         while (curToken.getTokenType() == TokenType.LSS || curToken.getTokenType() == TokenType.GRE ||
                 curToken.getTokenType() == TokenType.LEQ || curToken.getTokenType() == TokenType.GEQ) {
-            Printer.addOutFileInfo(SyntaxVarType.REL_EXP.toString());
+            Printer.addString(SyntaxVarType.REL_EXP.toString());
             children.add(NodeCreator.createNode(curToken)); read(); // read
             children.add(parseAddExp());
         }

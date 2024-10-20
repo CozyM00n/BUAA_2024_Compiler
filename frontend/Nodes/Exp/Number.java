@@ -14,6 +14,6 @@ public class Number extends Node {
 
     @Override
     public TypeInfo getTypeInfo() {
-        return new TypeInfo(false, true);
+        return new TypeInfo(false, "Int");
     }
 }

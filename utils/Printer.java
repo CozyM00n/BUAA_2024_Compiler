@@ -1,30 +1,34 @@
 package utils;
 
-import Enums.SyntaxVarType;
 import frontend.Lexer.Token;
-import frontend.Symbol.SymbolTable;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
 public class Printer {
+    private static String outputFile = "";
     private static HashMap<Integer, Error> errorList;
     private static ArrayList<String> outFileList;
     private static HashMap<Integer, ArrayList<String>> symbolMaps;
     private static FileWriter outputWriter;
     private static FileWriter errorWriter;
-    public static int hwNo;
+    public static String hwTask;
     public static boolean enable;
 
-    public static void initPrinter(String outputFile, int hwNumber) throws IOException {
+    public static void initPrinter(String task) throws IOException {
+        switch (task) {
+            case "LA": outputFile = "lexer.txt"; break;
+            case "SA": outputFile = "parser.txt"; break;
+            case "ST": outputFile = "symbol.txt"; break;
+        }
         errorList = new HashMap<>();
         outFileList = new ArrayList<>();
         symbolMaps = new HashMap<>();
         outputWriter = new FileWriter(outputFile);
         errorWriter = new FileWriter("error.txt");
         enable = true;
-        hwNo = hwNumber;
+        hwTask = task;
     }
 
     public static void closePrinter() {
@@ -52,14 +56,14 @@ public class Printer {
     }
 
     public static void printToken(Token tk) {
-        if (enable && tk != null && (hwNo == 1 || hwNo == 2)) {
+        if (enable && tk != null && (hwTask.equals("LA") || hwTask.equals("SA"))) {
             try {
                 outputWriter.write(tk + "\n");
             } catch (IOException e) { throw new RuntimeException(e); }
         }
     }
 
-    public static void printErrors(){
+    public static void printErrors() {
         if (enable) {
             try {
                 List<Map.Entry<Integer, Error>> errorEntries = new ArrayList<>(errorList.entrySet());
@@ -72,27 +76,40 @@ public class Printer {
         }
     }
 
-    public static void printSynVarType(SyntaxVarType type) {
-        if (enable && (hwNo == 1 || hwNo == 2)) {
-            try{
-                outputWriter.write(type.toString());
-            } catch (IOException e) {throw new RuntimeException(e);}
-        }
-    }
+//    public static void printSynVarType(SyntaxVarType type) {
+//        if (enable && (hwTask.equals("LA") || hwTask.equals("SA"))) {
+//            try {
+//                outputWriter.write(type.toString());
+//            } catch (IOException e) { throw new RuntimeException(e); }
+//        }
+//    }
 
-    public static void addOutFileInfo(String s) {
+    public static void addString(String s) {
         // for parser
-        if (hwNo == 2) {
-            outFileList.add(s + "\n");
+        if (enable && (hwTask.equals("LA") || hwTask.equals("SA"))) {
+            outFileList.add(s);
         }
     }
 
-    public static void addOutFileInfo(int symbolMapNo, ArrayList<String> strings) {
+    public static void printSA() throws IOException {
+        if (enable && hwTask.equals("SA")) {
+            if (errorList.isEmpty()) {
+                for (String s : outFileList) {
+                    outputWriter.write(s);
+                }
+            }
+            else {
+                printErrors();
+            }
+        }
+    }
+
+    public static void addString(int symbolMapNo, ArrayList<String> strings) {
         symbolMaps.put(symbolMapNo, strings);
     }
 
     public static void printSymbol() throws IOException {
-        if (enable && hwNo == 3) {
+        if (enable && hwTask.equals("ST")) {
             if (errorList.isEmpty()) {
                 List<Integer> sortedKeys = new ArrayList<>(symbolMaps.keySet());
                 Collections.sort(sortedKeys);

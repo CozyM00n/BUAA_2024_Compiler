@@ -34,8 +34,8 @@ public class FuncSymbol extends Symbol{
     }
 
     public TypeInfo getTypeInfo() {
-        if (returnType == ReturnType.RETURN_VOID) return null;
-        if (returnType == ReturnType.RETURN_INT) return new TypeInfo(false, true);
-        return new TypeInfo(false, false);
+        if (returnType == ReturnType.RETURN_VOID) return new TypeInfo(false, "Void");
+        if (returnType == ReturnType.RETURN_INT) return new TypeInfo(false, "Int");
+        return new TypeInfo(false, "Char");
     }
 }

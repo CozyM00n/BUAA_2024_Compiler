@@ -130,6 +130,8 @@ from教程：
 
 离开作用域时，我们调用 `popScope` 函数，返回上一层作用域的符号表，即 `_father` 字段取值。
 
-前序遍历
+### 如何打印
 
-如何打印
+词法成分：Token的`toString()`方法：`<tokenType> <value> \n` ，自带换行
+
+语法成分：`SyntaxVarType`的`toString`方法：`"<" + typeName + ">\n"`
