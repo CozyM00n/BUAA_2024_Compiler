@@ -8,9 +8,46 @@
 - 检查每次作业是否都能运行
 - 调用super.checkE的顺序
 
+### 注意事项
+
+先设置运行的configuration；
+
+
+
 ### 词法分析
 
+lexer 包下的文件用于进行词法分析。
 
+#### 具体实现
+
+新建枚举类TokenType用于表示如下单词类别（关键字+标识符名称）。
+
+![image-20241023153003250](README/image-20241023153003250.png)
+
+新建Token类，作为词法基本单元。记录了单词类别`TokenType`，单词值`value`（`String`），以及行号 `lineno`。
+
+新建Lexer类，其中`curChar`记录当前字符。规定永远提前读一个字符，即`curChar`是下一个要进行分析的字符。
+
+Lexer内成员变量`tokenList`按顺序存储每个读到的Token。`getTokenList()`方法用于获取单词列表`tokenList`。
+
+```java
+public ArrayList<Token> getTokenList() throws IOException {
+    if (tokenList.isEmpty()) {
+        Token tk = next();
+        while (tk.getTokenType() != TokenType.EOFTK) {
+            tokenList.add(tk);
+            tk = next();
+        }
+    }
+    return tokenList;
+}
+```
+
+新建TokenStream类，最后将得到的单词列表封装成一个TokenStream的实例。TokenStream提供了以单词为最小单位进行读取的read接口供后续语法分析使用。
+
+#### `next()`方法
+
+`next()`尝试解析出下一个Token并返回。
 
 ### 语法分析
 
@@ -132,6 +169,50 @@ from教程：
 
 ### 如何打印
 
-词法成分：Token的`toString()`方法：`<tokenType> <value> \n` ，自带换行
+词法成分：Token的`toString()`方法：`<tokenType> <value> \n` ，自带换行。例：`LPARENT ( \n`， `IDENFR num \n`
 
 语法成分：`SyntaxVarType`的`toString`方法：`"<" + typeName + ">\n"`
+
+### 附录
+
+
+
+#### StringBuilder的用法
+
+```java
+StringBuilder sb = new StringBuilder("Hello");
+sb.append("World"); // 输出 "HelloWorld"
+sb.insert(5, " "); // 输出 "Hello World"
+sb.replace(6, 11, "Java");// 输出 "Hello Java"
+sb.delete(5, 6);  // 删除索引 5 到 6 之间的字符（删除空格）
+sb.reverse(); //  "avaJlleH"
+sb.setCharAt(0, 'h'); // 输出 "havaJlleH"
+```
+
+#### 添加的部分
+
+lexer：
+
+新增TokenType种类（关键字）
+修改next方法
+新增的关键字在getIdentType中体现
+
+parser：
+
+新增SyntaxVarType种类
+新增相关类，NodeCreator新增对应new
+parser新增对应parse方法
+更改可能改变的**First集**，更改相关的if判断
+
+#### 测试
+
+```
+// lexer
+int main() {
+	char s[15] = "strin\\gggg";
+    char ch1 = 'a';
+    char ch2 = '\t';
+    char s1[15] = "\t";
+	return 0;
+}
+```

@@ -17,6 +17,7 @@ public class Compiler {
             FileInputStream fin = new FileInputStream("testfile.txt");
             PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
             Lexer lexer = new Lexer(inputStream);
+            //lexer.test();
             Printer.printLA(lexer.getTokenList());
         } else if (task.equals("SA")) {
             FileInputStream fin = new FileInputStream("testfile.txt");

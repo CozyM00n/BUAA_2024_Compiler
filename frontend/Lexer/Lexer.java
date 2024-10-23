@@ -38,6 +38,12 @@ public class Lexer {
         inputStream.unread(curChar);
     }
 
+//    public void test() throws IOException {
+//        System.out.println(curChar = getChar());
+//        unGetChar();
+//        System.out.println(curChar = getChar());
+//    }
+
     public boolean isEnglishLetter(char ch) {
         return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
     }

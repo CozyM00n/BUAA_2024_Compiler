@@ -23,6 +23,9 @@ public class Node {
     public Node(SyntaxVarType type, ArrayList<Node> children) {
         this.type = type;
         this.children = children;
+        if (children.isEmpty()) {
+            System.out.println("Err: Node constructor for NoneLeaf Node");
+        }
         this.startLine = children.get(0).startLine;
         this.endLine = children.get(children.size() - 1).endLine;
     }

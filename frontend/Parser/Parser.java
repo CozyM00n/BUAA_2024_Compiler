@@ -269,6 +269,8 @@ public class Parser {
         }
         else if (curToken.getTokenType() == TokenType.CHRCON) {
             children.add(parseCharacter());
+        } else {
+            System.out.println("err: parsePrimaryExp");
         }
         return NodeCreator.createNode(SyntaxVarType.PRIM_EXP, children);
     }
@@ -426,7 +428,8 @@ public class Parser {
             return parsePrintfStmt();
         } else if (curToken.getTokenType() == TokenType.SEMICN) { // ;
             return parseExpStmt();
-        } else {
+        }
+        else {
             Printer.enable = false;
             tokenStream.logPosition();
             parseExp();
