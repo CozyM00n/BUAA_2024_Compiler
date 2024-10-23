@@ -29,9 +29,9 @@ public class Compiler {
             FileInputStream fin = new FileInputStream("testfile.txt");
             PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
             Lexer lexer = new Lexer(inputStream);
-             Parser parser = new Parser(lexer.getTokenStream());
-             Node compUnit = parser.parseCompUnit();
-             compUnit.checkError();
+            Parser parser = new Parser(lexer.getTokenStream());
+            Node compUnit = parser.parseCompUnit();
+            compUnit.checkError();
             Printer.printSymbol();
         }
         Printer.closePrinter();

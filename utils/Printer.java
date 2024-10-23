@@ -9,7 +9,7 @@ import java.util.*;
 public class Printer {
     private static String outputFile = "";
     private static HashMap<Integer, Error> errorList;
-    private static ArrayList<String> outFileList;
+    private static ArrayList<String> outFileList; // for parser
     private static HashMap<Integer, ArrayList<String>> symbolMaps;
     private static FileWriter outputWriter;
     private static FileWriter errorWriter;
@@ -44,22 +44,21 @@ public class Printer {
         errorList.put(error.getLineno(), error);
     }
 
-    public static void printLA(ArrayList<Token> tks) throws IOException {
-        if (errorList.isEmpty()) {
-            for (Token tk: tks) {
-                printToken(tk);
-            }
-        }
-        else {
-            printErrors();
-        }
+    public static void printToken(Token tk) {
+        try {
+            outputWriter.write(tk.toString());
+        } catch (IOException e) { throw new RuntimeException(e); }
     }
 
-    public static void printToken(Token tk) {
-        if (enable && tk != null && (hwTask.equals("LA") || hwTask.equals("SA"))) {
-            try {
-                outputWriter.write(tk + "\n");
-            } catch (IOException e) { throw new RuntimeException(e); }
+    public static void printLA(ArrayList<Token> tks) {
+        if (enable && hwTask.equals("LA")) {
+            if (errorList.isEmpty()) {
+                for (Token tk: tks) {
+                    printToken(tk);
+                }
+            } else {
+                printErrors();
+            }
         }
     }
 
@@ -76,17 +75,9 @@ public class Printer {
         }
     }
 
-//    public static void printSynVarType(SyntaxVarType type) {
-//        if (enable && (hwTask.equals("LA") || hwTask.equals("SA"))) {
-//            try {
-//                outputWriter.write(type.toString());
-//            } catch (IOException e) { throw new RuntimeException(e); }
-//        }
-//    }
-
     public static void addString(String s) {
         // for parser
-        if (enable && (hwTask.equals("LA") || hwTask.equals("SA"))) {
+        if (enable && hwTask.equals("SA")) {
             outFileList.add(s);
         }
     }
