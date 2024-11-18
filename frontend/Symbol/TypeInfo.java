@@ -1,12 +1,26 @@
 package frontend.Symbol;
 
-import Enums.ReturnType;
-
 public class TypeInfo {
-    private boolean isArray;
-    private String type;
 
-    public TypeInfo(boolean isArray, String type) {
+    public enum typeInfo {
+        INT_TYPE("Int"), CHAR_TYPE("Char"), VOID_TYPE("Void"),
+        ;
+
+        private final String typeName;
+        typeInfo(String str) {
+            this.typeName = str;
+        }
+
+        @Override
+        public String toString() {
+            return this.typeName;
+        }
+    }
+
+    private boolean isArray;
+    private typeInfo type;
+
+    public TypeInfo(boolean isArray, typeInfo type) {
         this.isArray = isArray;
         this.type = type;
     }
@@ -15,7 +29,7 @@ public class TypeInfo {
         isArray = flg;
     }
 
-    public String getType() {
+    public typeInfo getType() {
         return type;
     }
 
@@ -25,10 +39,11 @@ public class TypeInfo {
 
     @Override
     public String toString() {
-        return (type.equals("Int") ? "Int" : type.equals("Char") ? "Char" : "Void") + ((isArray) ? "Array": "");
+        return type.toString() + ((isArray) ? "Array": "");
     }
 
     public static boolean match(TypeInfo formal, TypeInfo real) {
+        if (real == null) return false;
         if (formal.isArray) {
             return real.isArray && formal.type.equals(real.type);
         } else {

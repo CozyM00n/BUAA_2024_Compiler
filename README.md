@@ -1,20 +1,21 @@
 # BUAA_2024_Compiler
 
+> 缺的; ] } 已经补全
+
 ### TODO
 
-- 缺的; ] } 没补全，也就是children可能是不符合文法的，
-- 监视点的正确性验证
-- 未考虑Globol
-- 检查每次作业是否都能运行
-- 调用super.checkE的顺序
+- int和char的类型转换
+- 
 
-### 注意事项
-
-先设置运行的configuration；
+## 参考编译器介绍
 
 
 
-### 词法分析
+## 总体设计
+
+
+
+## 词法分析
 
 lexer 包下的文件用于进行词法分析。
 
@@ -49,7 +50,7 @@ public ArrayList<Token> getTokenList() throws IOException {
 
 `next()`尝试解析出下一个Token并返回。
 
-### 语法分析
+## 语法分析
 
 我的`parser`采用递归下降的思路构建抽象语法树，为每一种语法成分写一个`parseXXX`函数，从顶层`parseCompUnit`开始，判断前方为该语法成分时调用，返回该语法节点。
 
@@ -123,10 +124,19 @@ else { // PrimaryExp
 
 对于常用的FIRST集合整理成函数，例如`Exp`的FIRST集：`+, -, !, 标识符, (, int, char`。
 
+![image-20241025094314202](README/image-20241025094314202.png)
+
 #### 回溯
 
-但是，仍有一种情况无法使用提前读来解决，需要读完下图红色部分之后才能进一步判断。
+但是，仍有一种情况无法使用提前读来解决，需要读完下图红色部分之后才能进一步判断，这里通过提前读+回溯来解决。
 <img src="README/image-20241007102850708.png" alt="image-20241007102850708" style="zoom:43%;" />
+
+具体地，`parseStmt`方法中判断完所有First集合不冲突的情况后：
+
+- 记录当前`curToken`的位置`pos`
+- 解析一个`exp`
+- 判断解析完`exp`之后当前符号是否为`=(ASSGIN)`，这时所有情况便可以区分开来。
+- 回到记录位置`pos`重新解析。
 
 #### 抽象语法树（AST）结构
 
@@ -143,9 +153,7 @@ else { // PrimaryExp
 
 从lexer传来的是token流，parser使用curToken记录当前单个词法成分。采取的读取规范是预先读好一个token，即在解析下一个语法成分前，其第一个词法成分已经存储在curToken里了。
 
-### 语义分析
-
-from教程：
+## 语义分析
 
 #### 类型系统
 
@@ -163,8 +171,6 @@ from教程：
 
 进入新作用域时，调用 `pushScope` 函数，该函数主要负责：新建一个符号表并将其入栈。
 
-
-
 离开作用域时，我们调用 `popScope` 函数，返回上一层作用域的符号表，即 `_father` 字段取值。
 
 ### 如何打印
@@ -173,9 +179,233 @@ from教程：
 
 语法成分：`SyntaxVarType`的`toString`方法：`"<" + typeName + ">\n"`
 
+## 中间代码生成
+
+这一部分的目标是：根据语法、语义分析生成的AST构建出LLVM IR。
+
+#### 常量的计算
+
+Node新增了`calculate()`方法，用于计算常量的初始值。
+
+新增InitialVal类，保存`ConstInitVal`这一SVT的具体值。
+
+### LLVM构建单元
+
+#### Module
+
+一个`.ll`文件对应的就是一个Module。由若干`GlobalValue`构成，其中GV可以是：全局变量/函数。
+
+
+
+#### Value类
+
+对于模块中不同粒度的所有语法结构，将都作为 `Value` 类的子类。
+
+#### User类
+
+特殊的`Value`类，为了表达 `Value` 之间的引用关系，将其他 `Value` 作为参数。
+
+#### Instruction类
+
+继承自`User`，因此可以将其他`Value`作为参数
+
+#### Use类
+
+表示语法结构间的使用关系。`User` 和 `Value` 之间的配对用 `Use` 类记录，通过 `Use` 类建立起了语法结构的上下级关系双向索引。
+
+####  LLVM 的类型系统
+
+每个Value都有其对应的类型。其子类包括：IntType
+
+### 各语法成分的具体实现
+
+#### 全局变量
+
+```
+常量声明 ConstDecl → 'const' BType ConstDef { ',' ConstDef } ';'
+常量定义 ConstDef → Ident [ '[' ConstExp ']' ] '=' ConstInitVal (如果使用了Ident必须是常量)
+```
+
+常量**必须有初始值**，常量数组不需要每一个元素都有初始值，但是未赋值的部分编译器需要将其置 0。
+
+#### 关于赋初值
+
+由于全局变/常量的初值表达式也必须是常量表达式`ConstExp`，也就是可以直接计算出来。ConstExp中使用的标识符必须是普通常量，不包括数组元素、函数返回值。
+
+新建`InitInfo`类，为**全局**变/常量赋初值时使用。
+
+**对于局部变量：**
+
+其初始值无法直接计算，需要在`genIR`阶段通过`Value`得到。其`varSymbol`的`InitInfo`字段为`null`。
+
+**对于局部常量：**
+
+
+
+**对于全局变/常量：**
+
+全局变/常量无论是否有`=`为其赋值，都会为其`symbol`赋一个非`null`的`InitInfo`。
+
+- 如果未赋值，`InitInfo`中的`InitValue`字段为`null`
+
+- 如果有赋值，`InitInfo`中的`InitValue`字段为对应的数组。特别地，如果是字符串为char数组赋值，对应`str`不为`null`，而是对应长度（补完`\0`）的字符串。
+
+#### 局部变量
+
+与全局变量不同，局部变量在赋值前需要**申请一块内存**。
+申请内存需要使用`Alloca`指令，其返回值是一个对应类型的指针（如果是非数组，就返回INT32/8的指针，如果是数组就返回`ArrayType`的指针）。同时该变量对应`varSymbol`的`llvmValue`也为这个`alloc`指令。
+
+为对象分配完内存后，如果有初始值，就可以使用`store`指令将初始值存入那块内存。
+`store i32 %1, i32* %3`，意思是把`from`保存的值，存入`to`这一内存地址（例如`alloca`）。
+
+当我们需要访问一个对象，就需要从对应内存中读取数据，`load`指令格式为`%6 = load i32, i32* %4`，`type`是这块地址上的对象类型，逗号后是指针（可以是`alloca`指令或`GlobalVar`）。打印的是指针的类型+指针的`name`。
+
+```
+; int b = a;
+%1 = alloca i32, align 4 ; %1 是为b分配的地址空间
+%2 = load i32, i32* @a, align 4 ; 加载全局变量a的Value至寄存器%2中
+store i32 %2, i32* %1, align 4 ; 将寄存器%2的值存入寄存器%1表示的地址中
+```
+
+
+
+#### 函数
+
+##### 函数调用
+
+其中`retType`可以是`int32`，`int8`， `void`
+
+```java
+public class Function extends User {
+    private LLVMType retType;
+    private ArrayList<Param> params;
+
+    public Function(String name, LLVMType retType) {
+        super(name, OtherType.FUNCTION);
+        this.retType = retType;
+    }
+}
+```
+
+##### 函数与基本块
+
+基本块的划分：
+
+- `{}` ：**`Block`语法成分**的第一个语句为基本块的第一条语句。（eg. 函数定义的`{}`，函数体内部的`Block`）
+- `if`条件判断划分出的基本块：`trueBlock`，`falseBlock`，`followBlock`
+
+##### 函数、基本块与符号表
+
+
+
+#### 输入输出
+
+```javascript
+%3 = call i32 @getint()
+```
+
+#### 数组
+
+##### 关于初始值
+
+对于任何有初始值的**字符数组**，无论是否用字符串去初始化，都是需要补0的。
+
+**唯一不需要**编译器置0的情况只有**局部变量int数组部分初始化。**
+
+**测试数据保证不会对未初始化的数组元素进行访问。**
+
+```c
+// 局部变量
+int arr[5] = {1, 2, 3};
+const int arr1[5] = {1, 2, 3};
+
+char ch[10] = "hello"; // 剩下的需要置0
+const char ch1[10] = "hello";
+```
+
+##### GEP指令
+
+
+
+##### 在函数中使用数组
+
+为函数定义生成中间代码包括以下几步：
+
+1. 设置`SymbolManager`中当前`funcSymbol`
+
+2. 新建Function并设置相关信息
+
+3. 为参数的symbol生成`param`信息。具体地，如果参数是数组，param的`llvmType`将是一个**指向int的指针**。
+
+4. **新建**`BasicBlock`+在`IRManager`中**更新**`curBlock`为当前`Block`
+
+5. 为**参数**生成所需要的中间代码。具体地，为该参数对应的`varSymbol`设置`llvmValue`。如果是数组，`llvmValue`就是`param`；如果是非数组，要新`alloc`一块新内存并将`param`作为`from`存入。
+
+6. 调用`Block`生成中间代码
+
+   具体地，`Block`的`genIR`的行为有：
+
+   - 进入了新的Block，更新当前符号表
+
+当数组作为LVal被访问时，我们取出它的`varSymbol`。这个`varSymbol`如果是普通变量，就会是一个指向整个数组的指针；如果是函数形参对应的`param`，就会是一个指向`INT32/8`的指针。
+
+#### 条件语句
+
+`BasicBlock` **以 terminator instruction（`ret`、`br` 等）结尾**。
+
+这里的`BasicBlock`应该是指基本块，而非大括号括起来的块。
+
+==todo== return之后是否要新建BB
+
+##### `if`语句的实现
+
+生成3个基本块：`trueBlock`，`falseBlock`，`followBlock`
+
+生成`condExp`的中间代码
+
+当前块设为`trueBlock`，生成`if`成立时的中间代码，最后补上无条件`Jump`至`follow`指令。
+
+当前块设为`falseBlock`，生成`if`不成立时的中间代码，最后补上无条件`Jump`至`follow`指令。
+
+设置当前块为`followBlock`。
+
+##### `Block`重命名
+
+
+
+### 符号表的维护
+
+##### 如何在genIR中使用符号表
+
+同语义分析一样，中间代码生成也需要遍历语法树并获取符号表相关信息。我没有选择重建符号表，而是直接使用已建好的表的信息。
+
+1.在**语义分析阶段**对**变量或常量**会生成对应的`Symbol`（在变量定义或函数形参定义）。如果加入符号表成功，就为该`Symbol`赋一个全局唯一标识`symbolId`（从1开始递增）。
+
+```java
+public boolean addSymbol(Symbol symbol) { // SymbolTable.java
+    // 如果符号创建成功
+    if (!(symbol instanceof FuncSymbol))
+        symbol.setSymbolId(SYMBOL_ID++);
+    // 加入符号表的操作
+    return true;
+}
+```
+
+2.中间代码生成阶段设置全局变量`curSymbolId`记录此时定义到了哪个变量。每当遍历到`VarDef`或`FuncFParam`时将`curSymbolId`更新为当前变量的id。
+
+##### 符号表中记录的信息
+
+`FuncSymbol curFuncSymbol`：用于对`return`语句错误检查，以及`genIR`阶段获取函数返回值类型。
+
+### 关于类型转换
+
+
+
+### 没有设置Name的指令
+
+`store`，`ret`
+
 ### 附录
-
-
 
 #### StringBuilder的用法
 
@@ -188,6 +418,18 @@ sb.delete(5, 6);  // 删除索引 5 到 6 之间的字符（删除空格）
 sb.reverse(); //  "avaJlleH"
 sb.setCharAt(0, 'h'); // 输出 "havaJlleH"
 ```
+
+```java
+Pattern patternHexcon = Pattern.compile("0[Xx][0-9a-fA-F]+");
+Matcher matcher = patternHexcon.matcher("0x123");
+if (matcher.matches()) {
+            
+}
+"[+-]?[0-9]+"; // intconst, + 匹配1次或多次
+"[a-zA-Z_][a-zA-Z0-9_]*"; // keywords or ident， *匹配0次或多次
+```
+
+
 
 #### 添加的部分
 
@@ -205,14 +447,3 @@ parser新增对应parse方法
 更改可能改变的**First集**，更改相关的if判断
 
 #### 测试
-
-```
-// lexer
-int main() {
-	char s[15] = "strin\\gggg";
-    char ch1 = 'a';
-    char ch2 = '\t';
-    char s1[15] = "\t";
-	return 0;
-}
-```

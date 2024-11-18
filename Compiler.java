@@ -1,6 +1,7 @@
 import frontend.Lexer.Lexer;
 import frontend.Nodes.Node;
 import frontend.Parser.Parser;
+import llvm_IR.Module;
 import utils.Printer;
 
 import java.io.FileInputStream;
@@ -10,7 +11,7 @@ import java.io.PushbackInputStream;
 public class Compiler {
     public static void main(String[] args) throws IOException {
 
-        String task = "ST";
+        String task = "CG";
         Printer.initPrinter(task);
 
         if (task.equals("LA")) {
@@ -34,6 +35,20 @@ public class Compiler {
             Node compUnit = parser.parseCompUnit();
             compUnit.checkError();
             Printer.printSymbol();
+        } else if (task.equals("CG")) { // code generation
+            FileInputStream fin = new FileInputStream("testfile.txt");
+            PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
+            Lexer lexer = new Lexer(inputStream);
+            Parser parser = new Parser(lexer.getTokenStream());
+            Node compUnit = parser.parseCompUnit();
+            compUnit.checkError();
+            if (Printer.hasError()) {
+                Printer.printErrors();
+                System.out.println("task = CG : Found Syntax Error!");
+            } else { // 只为正确的testFile生成llvm
+                compUnit.generateIR();
+                Printer.printLLVM(Module.getInstance());
+            }
         }
         Printer.closePrinter();
     }

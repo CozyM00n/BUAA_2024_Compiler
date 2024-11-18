@@ -6,13 +6,16 @@ import frontend.Nodes.Node;
 import frontend.Nodes.Var.TokenNode;
 import frontend.Symbol.FuncSymbol;
 import frontend.Symbol.SymbolManager;
+import llvm_IR.Instr.ReturnInstr;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
 import java.util.ArrayList;
-// Stmt → ‘return’ { ‘[’ Exp ’]’ } ‘;’
+// Stmt → 'return' [Exp] ';'
 
 public class ReturnStmt extends Stmt {
+
     public ReturnStmt(SyntaxVarType type, ArrayList<Node> children) {
         super(type, children);
     }
@@ -27,5 +30,17 @@ public class ReturnStmt extends Stmt {
             }
         }
         super.checkError();
+    }
+
+    @Override
+    public Value generateIR() {
+        FuncSymbol funcSymbol = SymbolManager.getInstance().getCurFuncSymbol();
+        Value retValue;
+        if (children.size() >= 3)
+            retValue = children.get(1).generateIR();
+        else
+            retValue = null;
+        ReturnInstr instr = new ReturnInstr(retValue, funcSymbol.getLlvmValue().getRetType());
+        return null;
     }
 }

@@ -3,17 +3,20 @@ package frontend.Symbol;
 
 import Enums.ReturnType;
 import Enums.SymbolType;
+import llvm_IR.Function;
 
 import java.util.ArrayList;
 
 public class FuncSymbol extends Symbol{
     private ReturnType returnType;
     private ArrayList<TypeInfo> typeList;
+    private Function llvmValue;
 
     public FuncSymbol(String symbolName, ReturnType returnType) {
-        super(symbolName, SymbolType.SYMBOL_FUNC);
+        super(symbolName, SymbolType.SYMBOL_FUNC, true);
         this.returnType = returnType;
         this.typeList = null;
+        this.llvmValue = null;
     }
 
     public void setTypeList(ArrayList<TypeInfo> typeList) {
@@ -22,6 +25,14 @@ public class FuncSymbol extends Symbol{
 
     public ArrayList<TypeInfo> getTypeList() {
         return typeList;
+    }
+
+    public void setLlvmValue(Function llvmValue) {
+        this.llvmValue = llvmValue;
+    }
+
+    public Function getLlvmValue() {
+        return llvmValue;
     }
 
     @Override
@@ -34,8 +45,8 @@ public class FuncSymbol extends Symbol{
     }
 
     public TypeInfo getTypeInfo() {
-        if (returnType == ReturnType.RETURN_VOID) return new TypeInfo(false, "Void");
-        if (returnType == ReturnType.RETURN_INT) return new TypeInfo(false, "Int");
-        return new TypeInfo(false, "Char");
+        if (returnType == ReturnType.RETURN_VOID) return new TypeInfo(false, TypeInfo.typeInfo.VOID_TYPE);
+        if (returnType == ReturnType.RETURN_INT) return new TypeInfo(false, TypeInfo.typeInfo.INT_TYPE);
+        return new TypeInfo(false, TypeInfo.typeInfo.CHAR_TYPE);
     }
 }

@@ -3,6 +3,7 @@ package frontend.Nodes.Exp;
 import Enums.SyntaxVarType;
 import frontend.Nodes.Node;
 import frontend.Symbol.TypeInfo;
+import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
 
@@ -20,5 +21,15 @@ public class Exp extends Node {
             }
         }
         return null;
+    }
+
+    @Override
+    public int calculate() {
+        return children.get(0).calculate();
+    }
+
+    @Override
+    public Value generateIR() {
+        return children.get(0).generateIR();
     }
 }

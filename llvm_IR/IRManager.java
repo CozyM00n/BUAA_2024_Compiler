@@ -1,0 +1,108 @@
+package llvm_IR;
+
+import llvm_IR.Instr.Instr;
+import llvm_IR.llvm_Values.*;
+
+import java.util.HashMap;
+import java.util.Stack;
+
+public class IRManager {
+    private Function curFunc;
+    private BasicBlock curBlock;
+    private HashMap<Function, Integer> localVarMap;
+    private int strLiteralNum;
+    private Stack<ForLoop> forLoops;
+    private int BasicBlockNum;
+
+    private IRManager() {
+        this.localVarMap = new HashMap<>();
+        this.curFunc = null;
+        this.curBlock = null;
+        this.strLiteralNum = 0;
+        this.forLoops = new Stack<>();
+    }
+
+    private static final IRManager irManager = new IRManager();
+    public static IRManager getInstance() {
+        return irManager;
+    }
+
+    /*** Function ***/
+    public void setCurFunc(Function func) {
+        this.curFunc = func;
+        localVarMap.put(func, 0);
+        addFunction(func);
+    }
+
+    public void addParam(Param param) {
+        curFunc.addParam(param);
+    }
+
+    public Value getLastInstr() {
+        return curFunc.getFuncLastInstr();
+    }
+    /**block**/
+    public void addBlock(BasicBlock block) {
+        curFunc.addBlock(block);
+    }
+
+    public void addAndSetCurBlock(BasicBlock block) {
+        this.curBlock = block;
+        addBlock(block);
+    }
+
+    public void addInstr(Instr instr) {
+        curBlock.addInstr(instr);
+    }
+
+    public void resetBlockName(BasicBlock block) {
+        block.setBlockName(genBlockName());
+    }
+
+    /*** add item for Module ***/
+    public void addStringLiteral(StringLiteral stringLiteral) {
+        Module.getInstance().addStringLiteral(stringLiteral);
+    }
+
+    public void addGlobalVar(GlobalVar globalVar) {
+        Module.getInstance().addGlobalVar(globalVar);
+    }
+
+    public void addFunction(Function func) {
+        Module.getInstance().addFunction(func);
+    }
+
+    /*** Generate Name ***/
+    public String genStrLiteralName() {
+        String name;
+        if (strLiteralNum == 0) name = "@.str";
+        else name = "@.str." + strLiteralNum;
+        strLiteralNum++;
+        return name;
+    }
+
+    public String genVRName() {
+        int num = localVarMap.get(curFunc);
+        localVarMap.put(curFunc, num + 1);
+        return "%" + num;
+    }
+
+    public String genBlockName() {
+        int num = localVarMap.get(curFunc);
+        localVarMap.put(curFunc, num + 1);
+        return String.valueOf("l" + num);
+    }
+
+    /***loop***/
+    public void pushLoop(ForLoop loop) {
+        forLoops.push(loop);
+    }
+
+    public ForLoop getCurLoop() {
+        return forLoops.peek();
+    }
+
+    public void popLoop() {
+        forLoops.pop();
+    }
+}

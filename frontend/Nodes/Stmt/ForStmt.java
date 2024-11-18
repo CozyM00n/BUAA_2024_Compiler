@@ -5,6 +5,8 @@ import frontend.Nodes.Exp.LValExp;
 import frontend.Nodes.Node;
 import frontend.Nodes.Var.TokenNode;
 import frontend.Symbol.SymbolManager;
+import llvm_IR.Instr.StoreInstr;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
@@ -19,10 +21,18 @@ public class ForStmt extends Node {
     public void checkError() {
         super.checkError();
         TokenNode identToken = ((LValExp)children.get(0)).getIdentToken(); // 获取identName
-        String identName = identToken.getTokenName();
+        String identName = identToken.getTokenValue();
         if (SymbolManager.getInstance().isConst(identName)) {
             Error error = new Error(identToken.getLino(), 'h');
             Printer.addError(error);
         }
+    }
+
+    @Override
+    public Value generateIR() {
+        Value lVal = ((LValExp) children.get(0)).genIRForAssign();
+        Value expVal = children.get(2).generateIR();
+        StoreInstr.checkAndGenStoreInstr(expVal, lVal);
+        return null;
     }
 }

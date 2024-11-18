@@ -2,6 +2,7 @@ package frontend.Nodes;
 
 import Enums.SyntaxVarType;
 import frontend.Symbol.TypeInfo;
+import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
 
@@ -38,6 +39,17 @@ public class Node {
         for (Node child: children) {
             child.checkError();
         }
+    }
+
+    public Value generateIR() {
+        if (children == null) return null;
+        for (Node child: children)
+            child.generateIR();
+        return null;
+    }
+
+    public int calculate() {
+        return 0;
     }
 
     public TypeInfo getTypeInfo() {

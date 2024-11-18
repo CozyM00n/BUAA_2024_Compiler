@@ -3,6 +3,9 @@ package frontend.Nodes.Stmt;
 import Enums.SyntaxVarType;
 import frontend.Nodes.Node;
 import frontend.Symbol.SymbolManager;
+import llvm_IR.IRManager;
+import llvm_IR.Instr.JumpInstr;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
@@ -22,5 +25,11 @@ public class ContinueStmt extends Stmt{
             Printer.addError(error);
         }
         super.checkError();
+    }
+
+    @Override
+    public Value generateIR() {
+        new JumpInstr(IRManager.getInstance().getCurLoop().getCondBlock());
+        return null;
     }
 }

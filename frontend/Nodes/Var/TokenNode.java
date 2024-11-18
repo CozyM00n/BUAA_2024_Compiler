@@ -28,7 +28,7 @@ public class TokenNode extends Node {
         return token;
     }
 
-    public String getTokenName() {
+    public String getTokenValue() {
         return token.getValue();
     }
 

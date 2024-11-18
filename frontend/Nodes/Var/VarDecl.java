@@ -4,6 +4,7 @@ import Enums.SyntaxVarType;
 import Enums.TokenType;
 import frontend.Nodes.Node;
 import frontend.Symbol.SymbolManager;
+import frontend.Symbol.TypeInfo;
 
 import java.util.ArrayList;
 
@@ -13,11 +14,11 @@ public class VarDecl extends Node {
         super(type, children);
     }
 
-    public String judgeType() {
+    public TypeInfo.typeInfo judgeType() {
         if (((TokenNode)children.get(0)).getTokenType() == TokenType.INTTK) {
-            return "Int";
+            return TypeInfo.typeInfo.INT_TYPE;
         } else {
-            return "Char";
+            return TypeInfo.typeInfo.CHAR_TYPE;
         }
     }
 

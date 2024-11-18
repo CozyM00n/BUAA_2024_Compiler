@@ -3,22 +3,27 @@ package frontend.Symbol;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class SymbolTable {
-    private HashMap<String, Symbol> symbolMap;
-    private ArrayList<String> symbolNameList;
-    private int tableNum;
-    // private HashSet<Symbol> symbols;
+import static frontend.Symbol.Symbol.SYMBOL_ID;
 
-    public SymbolTable(int tableNum) {
+public class SymbolTable {
+    static int TABLE_ID = 1; // 每个符号表对应一个唯一id 按照出现顺序递增
+    private int tableId;
+    private HashMap<String, Symbol> symbolMap;
+    private ArrayList<String> symbolNameList; // 记录每个symbol在该表中的出场顺序
+    private int fatherId;
+
+    public SymbolTable(int fatherId) {
         this.symbolMap = new HashMap<>();
         this.symbolNameList = new ArrayList<>();
-        this.tableNum = tableNum;
+        this.tableId = TABLE_ID++;
+        this.fatherId = fatherId;
     }
 
     public boolean addSymbol(Symbol symbol) {
         if (symbolMap.containsKey(symbol.getSymbolName())) {
             return false;
         }
+        if (!(symbol instanceof FuncSymbol)) symbol.setSymbolId(SYMBOL_ID++);
         symbolMap.put(symbol.getSymbolName(), symbol);
         symbolNameList.add(symbol.getSymbolName());
         return true;
@@ -28,19 +33,20 @@ public class SymbolTable {
         return symbolMap.getOrDefault(identName, null);
     }
 
-    public ArrayList<String> getsymbolNameList() {
-        return symbolNameList;
+    public int getTableId() {
+        return tableId;
     }
 
-    public int getTableNum() {
-        return tableNum;
+    public int getFatherId() {
+        return fatherId;
     }
 
-    public ArrayList<String> toStrings() {
-        ArrayList<String> strings = new ArrayList<>();
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         for (String name : symbolNameList) {
-            strings.add(tableNum + " " + symbolMap.get(name).toString());
+            sb.append(tableId + " " + symbolMap.get(name).toString() + "\n");
         }
-        return strings;
+        return sb.toString();
     }
 }

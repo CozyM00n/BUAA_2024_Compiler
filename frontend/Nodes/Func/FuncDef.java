@@ -2,7 +2,6 @@ package frontend.Nodes.Func;
 
 import Enums.ReturnType;
 import Enums.SyntaxVarType;
-import Enums.TokenType;
 import frontend.Nodes.Block;
 import frontend.Nodes.Node;
 import frontend.Nodes.Stmt.ReturnStmt;
@@ -10,11 +9,18 @@ import frontend.Nodes.Var.TokenNode;
 import frontend.Symbol.FuncSymbol;
 import frontend.Symbol.SymbolManager;
 import frontend.Symbol.TypeInfo;
+import llvm_IR.Function;
+import llvm_IR.IRManager;
+import llvm_IR.Instr.ReturnInstr;
+import llvm_IR.llvm_Types.IntType;
+import llvm_IR.llvm_Types.LLVMType;
+import llvm_IR.llvm_Types.VoidType;
+import llvm_IR.llvm_Values.BasicBlock;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
 import java.util.ArrayList;
-import java.util.SortedMap;
 
 //  FuncDef → FuncType Ident '(' [FuncFParams] ')' Block // b g j
 public class FuncDef extends Node {
@@ -26,12 +32,12 @@ public class FuncDef extends Node {
 
     public FuncSymbol createSymbol() {
         ReturnType returnType = ((FuncType)children.get(0)).getFuncRetType();
-        return new FuncSymbol(((TokenNode)children.get(1)).getTokenName(), returnType);
+        return new FuncSymbol(((TokenNode)children.get(1)).getTokenValue(), returnType);
     }
 
     public void setParaInfo() {
         ArrayList<TypeInfo> typeList = new ArrayList<>();
-        if (children.get(3) instanceof  FuncFParams) {
+        if (children.get(3) instanceof FuncFParams) {
             typeList.addAll(((FuncFParams) children.get(3)).getFParamsType());
         }
         funcSymbol.setTypeList(typeList);
@@ -40,6 +46,7 @@ public class FuncDef extends Node {
     @Override
     public void checkError() {
         this.funcSymbol = createSymbol();
+        SymbolManager.getInstance().setGlobal(false); // 接下来无全局变量定义
         // b : 名字重定义 报错行号 Ident所在行数
         boolean res = SymbolManager.getInstance().addSymbol(funcSymbol);
         if (!res) {
@@ -65,5 +72,35 @@ public class FuncDef extends Node {
             Error error = new Error(BlockNode.getChildren().get(BlockChildNum - 1).getEndLine(), 'g');
             Printer.addError(error);
         }
+    }
+
+    @Override
+    public Value generateIR() {
+        SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
+        String name = funcSymbol.getSymbolName();
+        LLVMType retType;
+        switch (funcSymbol.getReturnType()) {
+            case RETURN_INT: retType = IntType.INT32; break;
+            case RETURN_CHAR: retType = IntType.INT8; break;
+            case RETURN_VOID: retType = VoidType.VOID; break;
+            default: retType = null; break;
+        }
+        Function function = new Function("@" + name, retType);
+        funcSymbol.setLlvmValue(function);
+        IRManager.getInstance().setCurFunc(function);
+        if (children.get(3) instanceof FuncFParams) {
+            ((FuncFParams)children.get(3)).setParamForSymbol();
+        }
+        BasicBlock block = new BasicBlock(IRManager.getInstance().genBlockName());
+        IRManager.getInstance().addAndSetCurBlock(block);
+        if (children.get(3) instanceof FuncFParams) {
+            (children.get(3)).generateIR();
+        }
+        children.get(children.size() - 1).generateIR(); // Block
+        if (!(IRManager.getInstance().getLastInstr() instanceof ReturnInstr)
+                && funcSymbol.getReturnType() == ReturnType.RETURN_VOID) {
+            new ReturnInstr(null, null);
+        }
+        return null;
     }
 }

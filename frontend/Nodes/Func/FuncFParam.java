@@ -4,14 +4,24 @@ import Enums.SyntaxVarType;
 import Enums.TokenType;
 import frontend.Nodes.Node;
 import frontend.Nodes.Var.TokenNode;
-import frontend.Symbol.FuncSymbol;
 import frontend.Symbol.SymbolManager;
 import frontend.Symbol.TypeInfo;
 import frontend.Symbol.VarSymbol;
+import llvm_IR.IRManager;
+import llvm_IR.Instr.AllocaInstr;
+import llvm_IR.Instr.Instr;
+import llvm_IR.Instr.StoreInstr;
+import llvm_IR.llvm_Values.Param;
+import llvm_IR.llvm_Types.IntType;
+import llvm_IR.llvm_Types.LLVMType;
+import llvm_IR.llvm_Types.PointerType;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
 import java.util.ArrayList;
+
+import static frontend.Symbol.SymbolManager.curSymbolId;
 
 public class FuncFParam extends Node {
     //  FuncFParam → BType Ident ['[' ']'] // b k
@@ -25,17 +35,17 @@ public class FuncFParam extends Node {
         return children.size() == 4;
     }
 
-    public String judgeType() {
+    public TypeInfo.typeInfo judgeType() {
         if (((TokenNode)children.get(0)).getTokenType() == TokenType.INTTK) {
-            return "Int";
+            return TypeInfo.typeInfo.INT_TYPE;
         } else {
-            return "Char";
+            return TypeInfo.typeInfo.CHAR_TYPE;
         }
     }
 
     public VarSymbol createSymbol() {
         TypeInfo typeInfo = new TypeInfo(judgeIsArray(), judgeType());
-        return new VarSymbol(typeInfo, ((TokenNode) children.get(1)).getTokenName());
+        return new VarSymbol(typeInfo, ((TokenNode) children.get(1)).getTokenValue());
     }
 
     public VarSymbol getVarSymbol() {
@@ -52,5 +62,31 @@ public class FuncFParam extends Node {
             Printer.addError(error);
         }
         super.checkError();
+    }
+
+    public void setParamForSymbol() {
+        // 获取当前参数的llvmType
+        IntType type = varSymbol.getTypeInfo().getType() == TypeInfo.typeInfo.INT_TYPE ? IntType.INT32 : IntType.INT8;
+        LLVMType llvmType = varSymbol.getTypeInfo().getIsArray() ? new PointerType(type) : type;
+        Param param = new Param(IRManager.getInstance().genVRName(), llvmType);
+        varSymbol.setParam(param);
+        assert curSymbolId == varSymbol.getSymbolId() - 1;
+        curSymbolId = varSymbol.getSymbolId();
+    }
+
+    @Override
+    public Value generateIR() {
+        Param param = varSymbol.getParam();
+        if (varSymbol.getTypeInfo().getIsArray()) {
+            varSymbol.setLlvmValue(param);
+        }
+        else {
+            // 复制形参信息
+            Instr alloca = new AllocaInstr(IRManager.getInstance().genVRName(), param.getLlvmType());
+            varSymbol.setLlvmValue(alloca);
+            // 把形参的值存入
+            alloca = StoreInstr.checkAndGenStoreInstr(param, alloca);
+        }
+        return null;
     }
 }

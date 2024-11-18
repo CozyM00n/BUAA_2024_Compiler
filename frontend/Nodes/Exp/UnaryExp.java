@@ -1,5 +1,6 @@
 package frontend.Nodes.Exp;
 
+import Enums.ReturnType;
 import Enums.SyntaxVarType;
 import Enums.TokenType;
 import frontend.Nodes.Func.FuncRParams;
@@ -9,6 +10,12 @@ import frontend.Symbol.FuncSymbol;
 import frontend.Symbol.Symbol;
 import frontend.Symbol.SymbolManager;
 import frontend.Symbol.TypeInfo;
+import llvm_IR.Function;
+import llvm_IR.IRManager;
+import llvm_IR.Instr.*;
+import llvm_IR.llvm_Types.IntType;
+import llvm_IR.llvm_Values.Constant;
+import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
 
@@ -32,7 +39,7 @@ public class UnaryExp extends Node {
         if (children.size() >= 3 && ((TokenNode)children.get(1)).getTokenType() == TokenType.LPARENT) { // function Call
             // c 使用了未定义的标识符报错行号为Ident 所在行数
             TokenNode identToken = ((TokenNode) children.get(0));
-            Symbol symbol = SymbolManager.getInstance().getSymbol(identToken.getTokenName());
+            Symbol symbol = SymbolManager.getInstance().getSymbol(identToken.getTokenValue());
             if (!(symbol instanceof FuncSymbol)) { // 包含null的情况
                 Error error = new Error(((TokenNode) children.get(0)).getLino(), 'c');
                 Printer.addError(error);
@@ -62,7 +69,7 @@ public class UnaryExp extends Node {
     @Override
     public TypeInfo getTypeInfo() {
         if (children.get(0) instanceof TokenNode) {
-            String identName = ((TokenNode) children.get(0)).getTokenName();
+            String identName = ((TokenNode) children.get(0)).getTokenValue();
             return (SymbolManager.getInstance().getSymbol(identName)).getTypeInfo();
         }
         for (Node child : children) {
@@ -71,5 +78,58 @@ public class UnaryExp extends Node {
             }
         }
         return null;
+    }
+
+    @Override
+    public int calculate() {
+        if (children.size() == 2 && children.get(0) instanceof UnaryOp) {
+            int res = children.get(1).calculate();
+            TokenNode uOp = (TokenNode)((children.get(0)).getChildren()).get(0);
+            switch (uOp.getTokenType()) {
+                case PLUS: return res;
+                case MINU: return -res;
+                case NOT: return res == 0 ? 1 : 0;
+            }
+        }
+        else if (children.get(0) instanceof PrimExp) {
+            return children.get(0).calculate();
+        }
+        System.out.println("Error CG : UnaryExp in calculate!");
+        return 0;
+    }
+
+    @Override
+    public Value generateIR() {
+        if (children.get(0) instanceof PrimExp) {
+            return children.get(0).generateIR();
+        }
+        else if (children.get(0) instanceof UnaryOp) {
+            TokenNode uOp = (TokenNode)((children.get(0)).getChildren()).get(0);
+            Value op1 = new Constant(0, IntType.INT32);
+            Value op2 = children.get(1).generateIR();
+            if (uOp.getTokenType() == TokenType.PLUS) {
+                return op2;
+            } else if (uOp.getTokenType() == TokenType.MINU) {
+                return BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, op1, op2);
+            } else { // NOT
+                Instr instr = new IcmpInstr(IRManager.getInstance().genVRName(),
+                        IcmpInstr.cmpOp.EQ, op1, op2);
+                instr = new ZextInstr(IRManager.getInstance().genVRName(), instr, IntType.INT32);
+                return instr;
+            }
+        }
+        else { // Function Call : Ident '(' [FuncRParams] ')'
+            TokenNode identToken = ((TokenNode) children.get(0));
+            FuncSymbol funcSymbol = (FuncSymbol) SymbolManager.getInstance().getSymbolForIR(identToken.getTokenValue());
+            Function function = funcSymbol.getLlvmValue();
+            ArrayList<Value> rParams = new ArrayList<>();
+            if (children.get(2) instanceof FuncRParams) {
+                rParams = ((FuncRParams) children.get(2)).genIRList();
+            }
+            if (funcSymbol.getReturnType() == ReturnType.RETURN_VOID)
+                return new CallInstr("%call", function, rParams);
+            else
+                return new CallInstr(IRManager.getInstance().genVRName(), function, rParams);
+        }
     }
 }

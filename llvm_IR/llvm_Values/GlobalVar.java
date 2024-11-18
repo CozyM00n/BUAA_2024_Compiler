@@ -1,0 +1,21 @@
+package llvm_IR.llvm_Values;
+
+import llvm_IR.IRManager;
+import llvm_IR.InitInfo;
+import llvm_IR.User;
+import llvm_IR.llvm_Types.LLVMType;
+
+public class GlobalVar extends User {
+    private InitInfo initInfo;
+
+    public GlobalVar(String name, LLVMType llvmType, InitInfo initInfo) {
+        super(name, llvmType);
+        this.initInfo = initInfo;
+        IRManager.getInstance().addGlobalVar(this);
+    }
+
+    @Override
+    public String toString() { // todo const???
+        return this.name + " = dso_local global " + initInfo;
+    }
+}
