@@ -35,7 +35,6 @@ public class MulExp extends Node {
     public int calculate() {
         int res = children.get(0).calculate();
         for (int i = 1; i < children.size(); i++) {
-            System.out.println(((TokenNode)children.get(i)).getLino());
             switch (((TokenNode)children.get(i)).getTokenType()) {
                 case MULT: res *= children.get(++i).calculate(); break;
                 case DIV:  res /= children.get(++i).calculate(); break;

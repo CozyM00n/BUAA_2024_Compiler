@@ -47,18 +47,18 @@ public class ForBodyStmt extends Stmt {
     @Override
     public Value generateIR() {
         SymbolManager.getInstance().enterLoop();
-        BasicBlock condBlock = new BasicBlock("");
-        BasicBlock forBodyBlock = new BasicBlock("");
-        BasicBlock followBlock = new BasicBlock("");
-        BasicBlock forStmt2Block = new BasicBlock("");
-        IRManager.getInstance().pushLoop(new ForLoop(condBlock, followBlock));
+        BasicBlock condBlock = new BasicBlock(IRManager.getInstance().genBlockName());
+        BasicBlock forBodyBlock = new BasicBlock(IRManager.getInstance().genBlockName());
+        BasicBlock followBlock = new BasicBlock(IRManager.getInstance().genBlockName());
+        BasicBlock forStmt2Block = new BasicBlock(IRManager.getInstance().genBlockName());
+        IRManager.getInstance().pushLoop(new ForLoop(forStmt2Block, followBlock));
         // 生成ForStmt1的IR
         if (forStmt1 != null) forStmt1.generateIR();
         // 跳转到condBlock
         new JumpInstr(condBlock);
         // 生成cond的IR指令
         IRManager.getInstance().addAndSetCurBlock(condBlock);
-        IRManager.getInstance().resetBlockName(condBlock);
+        // IRManager.getInstance().resetBlockName(condBlock);
         if (cond != null) {
             cond.genConditionIR(forBodyBlock, followBlock); // cond 成立跳转到body，不成立跳转到follow
         } else { // 没有cond 直接跳转到forBody
@@ -66,18 +66,18 @@ public class ForBodyStmt extends Stmt {
         }
         // 生成forBody的IR指令
         IRManager.getInstance().addAndSetCurBlock(forBodyBlock);
-        IRManager.getInstance().resetBlockName(forBodyBlock);
+        // IRManager.getInstance().resetBlockName(forBodyBlock);
         forBodyStmt.generateIR();
         // 跳转到forStmt2
         new JumpInstr(forStmt2Block);
         IRManager.getInstance().addAndSetCurBlock(forStmt2Block);
-        IRManager.getInstance().resetBlockName(forStmt2Block);
+        // IRManager.getInstance().resetBlockName(forStmt2Block);
         // 生成forStmt2的IR指令
         if (forStmt2 != null) forStmt2.generateIR();
         new JumpInstr(condBlock);
         // 设置当前块为follow
         IRManager.getInstance().addAndSetCurBlock(followBlock);
-        IRManager.getInstance().resetBlockName(followBlock);
+        // IRManager.getInstance().resetBlockName(followBlock);
         IRManager.getInstance().popLoop();
         SymbolManager.getInstance().leaveLoop();
         return null;

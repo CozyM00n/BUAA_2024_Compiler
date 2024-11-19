@@ -3,16 +3,16 @@ package llvm_IR;
 import llvm_IR.llvm_Values.BasicBlock;
 
 public class ForLoop {
-    private BasicBlock condBlock;
+    private BasicBlock forStmt2Block;
     private BasicBlock followBlock;
 
-    public ForLoop(BasicBlock condBlock, BasicBlock followBlock) {
-        this.condBlock = condBlock;
+    public ForLoop(BasicBlock forStmt2Block, BasicBlock followBlock) {
+        this.forStmt2Block = forStmt2Block;
         this.followBlock = followBlock;
     }
 
-    public BasicBlock getCondBlock() {
-        return condBlock;
+    public BasicBlock getForStmt2Block() {
+        return forStmt2Block;
     }
 
     public BasicBlock getFollowBlock() {

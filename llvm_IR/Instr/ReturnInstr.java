@@ -13,8 +13,7 @@ public class ReturnInstr extends Instr {
     // ret i32 %7
     private Value retValue;
 
-    public ReturnInstr(Value retValue, LLVMType funRetType) { // retValue在返回void时为null
-        super("return", VoidType.VOID, InstrType.RETURN_INSTR);
+    public static ReturnInstr checkAndGenRet(Value retValue, LLVMType funRetType) {
         if (retValue != null && retValue.getLlvmType() != funRetType) {
             if (retValue instanceof Constant) {
                 ((Constant) retValue).switchType(funRetType);
@@ -26,6 +25,10 @@ public class ReturnInstr extends Instr {
                 }
             }
         }
+        return new ReturnInstr(retValue);
+    }
+    public ReturnInstr(Value retValue) { // retValue在返回void时为null
+        super("return", VoidType.VOID, InstrType.RETURN_INSTR);
         this.retValue = retValue;
         addOperand(retValue);
     }

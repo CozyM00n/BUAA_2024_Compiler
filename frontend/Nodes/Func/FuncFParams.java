@@ -3,7 +3,6 @@ package frontend.Nodes.Func;
 import Enums.SyntaxVarType;
 import frontend.Nodes.Node;
 import frontend.Symbol.TypeInfo;
-import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
 
@@ -23,21 +22,21 @@ public class FuncFParams extends Node {
         return typeList;
     }
 
-    @Override
-    public Value generateIR() {
-        for (Node child: children) {
-            if (child instanceof FuncFParam) {
-                child.generateIR();
-            }
-        }
-        return null;
-    }
+//    @Override
+//    public Value generateIR() {
+//        for (Node child: children) {
+//            if (child instanceof FuncFParam) {
+//                child.generateIR();
+//            }
+//        }
+//        return null;
+//    }
 
-    public void setParamForSymbol() {
-        for (Node child: children) {
-            if (child instanceof FuncFParam) {
-                ((FuncFParam) child).setParamForSymbol();
-            }
-        }
-    }
+//    public void setParamForSymbol() {
+//        for (Node child: children) {
+//            if (child instanceof FuncFParam) {
+//                ((FuncFParam) child).setParamLLVM();
+//            }
+//        }
+//    }
 }

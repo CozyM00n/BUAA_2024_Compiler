@@ -8,7 +8,7 @@ import llvm_IR.llvm_Values.Value;
 
 public class GEPInstr extends Instr{
     // %1 = getelementptr [5 x i32], [5 x i32]* @a, i32 0, i32 3
-    // %4 = getelementptr i32, i32* %3, i32 1
+    // %4 = getelementptr i32, i32* %3, i32 1 函数参数类型为数组
     private Value pointer;
     private Value offset;
 

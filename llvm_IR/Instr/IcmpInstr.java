@@ -15,6 +15,11 @@ public class IcmpInstr extends Instr {
     }
 
     private cmpOp cmpop;
+
+//    public static void checkAndGenIcmp(String name, cmpOp cmpop, Value operand1, Value operand2) {
+//        if ()
+//    }
+
     public IcmpInstr(String name, cmpOp cmpop, Value op1, Value op2) {
         super(name, IntType.INT1, InstrType.ICMP_INSTR);
         this.cmpop = cmpop;

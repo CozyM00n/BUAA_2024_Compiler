@@ -29,7 +29,7 @@ public class ContinueStmt extends Stmt{
 
     @Override
     public Value generateIR() {
-        new JumpInstr(IRManager.getInstance().getCurLoop().getCondBlock());
+        new JumpInstr(IRManager.getInstance().getCurLoop().getForStmt2Block());
         return null;
     }
 }

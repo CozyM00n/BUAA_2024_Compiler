@@ -38,6 +38,7 @@ public class ConstDef extends Node {
     public boolean judgeIsArray() {
         return children.size() >= 2 && ((TokenNode)children.get(1)).getTokenType() == TokenType.LBRACK;
     }
+
     // 认为可以直接计算出值 在这一步直接解析ConstInitVal 生成initInfo
     public ConstSymbol createSymbol() {
         String symbolName = ((TokenNode) children.get(0)).getTokenValue();
@@ -55,6 +56,7 @@ public class ConstDef extends Node {
     }
 
     public void setConstSymLlvmType() {
+        // 由constSymbol中的TypeInfo信息设置其llvmType
         TypeInfo typeInfo = constSymbol.getTypeInfo();
         LLVMType eleType;
         if (typeInfo.getType() == TypeInfo.typeInfo.INT_TYPE) {
@@ -64,6 +66,7 @@ public class ConstDef extends Node {
         }
         int len;
         if (typeInfo.getIsArray()) { // 数组
+            // constExp可以直接算出具体值
             len = children.get(2).calculate();
             constSymbol.setLlvmType(new ArrayType(len, eleType));
         } else {
@@ -71,13 +74,13 @@ public class ConstDef extends Node {
         }
     }
 
-
     public void setConstInitInfo() {
         // 计算数组长度
         LLVMType type = constSymbol.getLlvmType();
         int len;
         if (type instanceof ArrayType) len = ((ArrayType)type).getLength();
         else len = 0;
+        // 常量一定有初始值
         ConstInitVal initVal = (ConstInitVal) children.get(children.size() - 1);
         String str = null;
         if (initVal.isStringConst()) str = initVal.getInitString(len);
@@ -94,27 +97,28 @@ public class ConstDef extends Node {
         InitInfo initInfo = constSymbol.getInitInfo();
         if (constSymbol.isGlobal()) { // 全局常量
             String name = "@" + constSymbol.getSymbolName();
-            GlobalVar globalVar = new GlobalVar(name, new PointerType(llvmType), initInfo);
+            GlobalVar globalVar = new GlobalVar(name, llvmType, initInfo);
             constSymbol.setLlvmValue(globalVar);
+            return null;
         }
-        else { // 局部常量
-            if (!constSymbol.getTypeInfo().getIsArray()) {
-                Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
-                constSymbol.setLlvmValue(alloc);
-                // 常量一定要store初始值
-                Value from = new Constant(initInfo.getInitValue().get(0), llvmType);
-                StoreInstr.checkAndGenStoreInstr(from, alloc);
-            }
-            else {
-                Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
-                constSymbol.setLlvmValue(alloc);
-                ArrayList<Integer> arrInits = initInfo.getInitValue();
-                for (int i = 0; i < arrInits.size(); i++) {
-                    Instr arrEleAddr = new GEPInstr(IRManager.getInstance().genVRName(), alloc,
-                            new Constant(i, IntType.INT32), ((ArrayType) llvmType).getEleType());
-                    Value from = new Constant(arrInits.get(i),((ArrayType)llvmType).getEleType());
-                    StoreInstr.checkAndGenStoreInstr(from, arrEleAddr);
-                }
+        // 非数组局部常量
+        if (!constSymbol.getTypeInfo().getIsArray()) {
+            Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
+            constSymbol.setLlvmValue(alloc);
+            // 常量一定要store初始值
+            Value from = new Constant(initInfo.getInitValues().get(0), llvmType);
+            StoreInstr.checkAndGenStoreInstr(from, alloc);
+        }
+        else {
+            Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
+            constSymbol.setLlvmValue(alloc);
+            LLVMType eleType = ((ArrayType) llvmType).getEleType();
+            ArrayList<Integer> valueList = initInfo.getInitValues();
+            for (int i = 0; i < valueList.size(); i++) {
+                Instr arrEleAddr = new GEPInstr(IRManager.getInstance().genVRName(), alloc,
+                        new Constant(i, IntType.INT32), eleType);
+                Value from = new Constant(valueList.get(i), eleType);
+                StoreInstr.checkAndGenStoreInstr(from, arrEleAddr);
             }
         }
         return null;

@@ -74,10 +74,7 @@ public class FuncDef extends Node {
         }
     }
 
-    @Override
-    public Value generateIR() {
-        SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
-        String name = funcSymbol.getSymbolName();
+    public void setFuncSymLLVMValue() {
         LLVMType retType;
         switch (funcSymbol.getReturnType()) {
             case RETURN_INT: retType = IntType.INT32; break;
@@ -85,22 +82,41 @@ public class FuncDef extends Node {
             case RETURN_VOID: retType = VoidType.VOID; break;
             default: retType = null; break;
         }
-        Function function = new Function("@" + name, retType);
+        Function function = new Function("@" + funcSymbol.getSymbolName(), retType);
         funcSymbol.setLlvmValue(function);
-        IRManager.getInstance().setCurFunc(function);
+    }
+
+    public void setParaLLVM() {
+
+    }
+
+    @Override
+    public Value generateIR() {
+        SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
+        setFuncSymLLVMValue();
+        IRManager.getInstance().addAndSetCurFunc(funcSymbol.getLlvmValue());
+        // 遍历所有FuncFParam，设置参数的llvmType和llvmValue
         if (children.get(3) instanceof FuncFParams) {
-            ((FuncFParams)children.get(3)).setParamForSymbol();
+            for (Node node : children.get(3).getChildren()) {
+                if (node instanceof FuncFParam) {
+                    ((FuncFParam) node).setParamLLVM();
+                    ((FuncFParam) node).updateCurSymbolId(); // 形参相当于定义了变量，更新全局符号id
+                }
+            }
         }
+        // 为函数新建基本块
         BasicBlock block = new BasicBlock(IRManager.getInstance().genBlockName());
         IRManager.getInstance().addAndSetCurBlock(block);
         if (children.get(3) instanceof FuncFParams) {
             (children.get(3)).generateIR();
         }
         children.get(children.size() - 1).generateIR(); // Block
+        // 如果void没有return，需要补全返回语句
         if (!(IRManager.getInstance().getLastInstr() instanceof ReturnInstr)
                 && funcSymbol.getReturnType() == ReturnType.RETURN_VOID) {
-            new ReturnInstr(null, null);
+            ReturnInstr.checkAndGenRet(null, null);
         }
+        // todo 建立新的Block？
         return null;
     }
 }

@@ -110,10 +110,10 @@ public class UnaryExp extends Node {
             if (uOp.getTokenType() == TokenType.PLUS) {
                 return op2;
             } else if (uOp.getTokenType() == TokenType.MINU) {
-                return BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, op1, op2);
+                return BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, new Constant(0, IntType.INT32), op2);
             } else { // NOT
                 Instr instr = new IcmpInstr(IRManager.getInstance().genVRName(),
-                        IcmpInstr.cmpOp.EQ, op1, op2);
+                        IcmpInstr.cmpOp.EQ, new Constant(0, op2.getLlvmType()), op2);
                 instr = new ZextInstr(IRManager.getInstance().genVRName(), instr, IntType.INT32);
                 return instr;
             }

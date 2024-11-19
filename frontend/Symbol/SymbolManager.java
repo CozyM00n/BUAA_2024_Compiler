@@ -56,7 +56,8 @@ public class SymbolManager {
 
     /*** Block ***/
     public void pushBlock() {
-        SymbolTable symbolTable = new SymbolTable(curTableId);
+        // for checkError 建表阶段
+        SymbolTable symbolTable = new SymbolTable(curTableId); // 传入父亲符号表的id
         curTableId = symbolTable.getTableId();
         symbolMap.put(curTableId, symbolTable);
         symbolTableStack.push(symbolTable);
@@ -112,11 +113,13 @@ public class SymbolManager {
         return isGlobal;
     }
 
+
     /*** function ***/
+    // 每到函数定义都要在此更新FuncSymbol，以便之后获得返回值类型
     public void setCurFuncSymbol(FuncSymbol curFuncSymbol) {
         this.curFuncSymbol = curFuncSymbol;
     }
-
+    // for ReturnStmt in ce and gc
     public FuncSymbol getCurFuncSymbol() {
         return curFuncSymbol;
     }

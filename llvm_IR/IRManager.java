@@ -20,6 +20,7 @@ public class IRManager {
         this.curBlock = null;
         this.strLiteralNum = 0;
         this.forLoops = new Stack<>();
+        this.BasicBlockNum = 0;
     }
 
     private static final IRManager irManager = new IRManager();
@@ -28,7 +29,7 @@ public class IRManager {
     }
 
     /*** Function ***/
-    public void setCurFunc(Function func) {
+    public void addAndSetCurFunc(Function func) {
         this.curFunc = func;
         localVarMap.put(func, 0);
         addFunction(func);
@@ -41,6 +42,7 @@ public class IRManager {
     public Value getLastInstr() {
         return curFunc.getFuncLastInstr();
     }
+
     /**block**/
     public void addBlock(BasicBlock block) {
         curFunc.addBlock(block);
@@ -55,9 +57,9 @@ public class IRManager {
         curBlock.addInstr(instr);
     }
 
-    public void resetBlockName(BasicBlock block) {
-        block.setBlockName(genBlockName());
-    }
+//    public void resetBlockName(BasicBlock block) {
+//        block.setBlockName(genBlockName());
+//    }
 
     /*** add item for Module ***/
     public void addStringLiteral(StringLiteral stringLiteral) {
@@ -84,13 +86,13 @@ public class IRManager {
     public String genVRName() {
         int num = localVarMap.get(curFunc);
         localVarMap.put(curFunc, num + 1);
-        return "%" + num;
+        return "%v" + num;
     }
 
     public String genBlockName() {
-        int num = localVarMap.get(curFunc);
-        localVarMap.put(curFunc, num + 1);
-        return String.valueOf("l" + num);
+//        int num = localVarMap.get(curFunc);
+//        localVarMap.put(curFunc, num + 1);
+        return "L" + (++BasicBlockNum);
     }
 
     /***loop***/

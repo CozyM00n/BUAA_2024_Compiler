@@ -64,16 +64,17 @@ public class VarDef extends Node {
     // 中间代码生成 只有全局变量调用
     public void setSymbolInitInfo() {
         ArrayList<Integer> initValues = null; String str = null;
-        // 仅当var有初始值时，initValues 不为 null
         int len;
         LLVMType type = varSymbol.getLlvmType();
         if (type instanceof ArrayType) len = ((ArrayType) type).getLength();
         else len = 0;
+        // 仅当var有初始值时，initValues 不为 null
         if (children.get(children.size() - 1) instanceof InitVal) {
             InitVal varInitVal = (InitVal) children.get(children.size() - 1);
             initValues = varInitVal.getIntList(len);
             if (varInitVal.isStringConst()) str = varInitVal.getVarInitString(len);
         }
+        // 否则initValues 为 null
         varSymbol.setInitInfo(new InitInfo(type, initValues, str));
     }
 
@@ -94,31 +95,36 @@ public class VarDef extends Node {
         LLVMType llvmType = varSymbol.getLlvmType();
         if (varSymbol.isGlobal()) { // 全局变量
             setSymbolInitInfo();
+            InitInfo initInfo = varSymbol.getInitInfo();
             String name = "@" + varSymbol.getSymbolName();
-            GlobalVar globalVar = new GlobalVar(name, new PointerType(llvmType), varSymbol.getInitInfo());
+            GlobalVar globalVar = new GlobalVar(name, llvmType, initInfo);
             varSymbol.setLlvmValue(globalVar);
+            return null;
         }
-        else {
-            if (!varSymbol.getTypeInfo().getIsArray()) {
-                Instr instr = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
-                varSymbol.setLlvmValue(instr);
-                if (children.get(children.size() - 1) instanceof InitVal) {
-                    Value from = ((InitVal) children.get(children.size() - 1)).generateIRList(0, llvmType).get(0);
-                    instr = StoreInstr.checkAndGenStoreInstr(from, instr);
-                }
+        // 非数组局部变量
+        if (!varSymbol.getTypeInfo().getIsArray()) {
+            Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
+            varSymbol.setLlvmValue(alloc);
+            // 如果有初始值，先求出其Value，再用store指令存入
+            if (children.get(children.size() - 1) instanceof InitVal) {
+                Value from = ((InitVal) children.get(children.size() - 1)).generateIRList(0, llvmType).get(0);
+                StoreInstr.checkAndGenStoreInstr(from, alloc);
             }
-            else { // 数组类型
-                Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType); // 指向数组的指针
-                varSymbol.setLlvmValue(alloc);
-                if (children.get(children.size() - 1) instanceof InitVal) {
-                    ArrayList<Value> arrInits = ((InitVal) children.get(children.size() - 1))
-                            .generateIRList(((ArrayType)llvmType).getLength(), llvmType);
-                    for (int i = 0; i < arrInits.size(); i++) {
-                        // 这里向GEP传入的是指向整个数组的指针
-                        Instr arrEleAddr = new GEPInstr(IRManager.getInstance().genVRName(), alloc,
-                                new Constant(i, IntType.INT32), ((ArrayType) llvmType).getEleType());
-                        StoreInstr.checkAndGenStoreInstr(arrInits.get(i), arrEleAddr);
-                    }
+        }
+        else { // 数组类型
+            // 新建指向数组的指针
+            Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
+            varSymbol.setLlvmValue(alloc);
+            // 如果有初始值，得到ValueList，再用store指令存入
+            if (children.get(children.size() - 1) instanceof InitVal) {
+                int len = ((ArrayType) llvmType).getLength();
+                LLVMType eleType = ((ArrayType) llvmType).getEleType();
+                ArrayList<Value> valueList = ((InitVal) children.get(children.size() - 1)).generateIRList(len, llvmType);
+                for (int i = 0; i < valueList.size(); i++) {
+                    // 这里向GEP传入的是指向整个数组的指针
+                    Instr arrEleAddr = new GEPInstr(IRManager.getInstance().genVRName(), alloc,
+                            new Constant(i, IntType.INT32), eleType);
+                    StoreInstr.checkAndGenStoreInstr(valueList.get(i), arrEleAddr);
                 }
             }
         }

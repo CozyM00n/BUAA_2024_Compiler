@@ -64,28 +64,33 @@ public class FuncFParam extends Node {
         super.checkError();
     }
 
-    public void setParamForSymbol() {
-        // 获取当前参数的llvmType
-        IntType type = varSymbol.getTypeInfo().getType() == TypeInfo.typeInfo.INT_TYPE ? IntType.INT32 : IntType.INT8;
-        LLVMType llvmType = varSymbol.getTypeInfo().getIsArray() ? new PointerType(type) : type;
-        Param param = new Param(IRManager.getInstance().genVRName(), llvmType);
-        varSymbol.setParam(param);
+    public void updateCurSymbolId() {
         assert curSymbolId == varSymbol.getSymbolId() - 1;
         curSymbolId = varSymbol.getSymbolId();
     }
 
+    public void setParamLLVM() {
+        // 获取当前参数的llvmType
+        IntType intType;
+        if (varSymbol.getTypeInfo().getType() == TypeInfo.typeInfo.INT_TYPE)
+            intType = IntType.INT32;
+        else intType = IntType.INT8;
+        // 如果是数组，该参数类型符号的llvmType是一个指向数组元素类型的指针
+        LLVMType llvmType = varSymbol.getTypeInfo().getIsArray() ? new PointerType(intType) : intType;
+        Param param = new Param(IRManager.getInstance().genVRName(), llvmType);
+        varSymbol.setLlvmType(llvmType);
+        varSymbol.setLlvmValue(param);
+    }
+
     @Override
     public Value generateIR() {
-        Param param = varSymbol.getParam();
-        if (varSymbol.getTypeInfo().getIsArray()) {
-            varSymbol.setLlvmValue(param);
-        }
-        else {
+        Param param = (Param) varSymbol.getLlvmValue();
+        if (!varSymbol.getTypeInfo().getIsArray()) {
             // 复制形参信息
             Instr alloca = new AllocaInstr(IRManager.getInstance().genVRName(), param.getLlvmType());
             varSymbol.setLlvmValue(alloca);
             // 把形参的值存入
-            alloca = StoreInstr.checkAndGenStoreInstr(param, alloca);
+            StoreInstr.checkAndGenStoreInstr(param, alloca);
         }
         return null;
     }

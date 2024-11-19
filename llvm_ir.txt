@@ -4,42 +4,17 @@ declare void @putint(i32)
 declare void @putch(i32)
 declare void @putstr(i8*)
 
-@x = dso_local global [10 x i32] zeroinitializer
-@i = dso_local global i32 0
+@.str = private unnamed_addr constant [2 x i8] c"1\00", align 1
+@.str.1 = private unnamed_addr constant [2 x i8] c"1\00", align 1
 
 define dso_local i32 @main() {
-	br label %1
-1:
-	%2 = load i32, i32* @i
-	%3 = icmp sle i32 %2, 10
-	br i1 %3, label %4, label %19
-4:
-	%5 = load i32, i32* @i
-	%6 = icmp eq i32 %5, 2
-	br i1 %6, label %7, label %8
-7:
-	store i32 4, i32* @i
-	br label %1
-	br label %8
-8:
-	%9 = load i32, i32* @i
-	%10 = getelementptr [10 x i32], [10 x i32]* @x, i32 0, i32 %9
-	%11 = load i32, i32* @i
-	store i32 %11, i32* %10
-	%12 = load i32, i32* @i
-	%13 = add i32 %12, 1
-	store i32 %13, i32* @i
-	%14 = load i32, i32* @i
-	%15 = icmp eq i32 %14, 5
-	br i1 %15, label %16, label %17
-16:
-	br label %19
-	br label %17
-17:
-	br label %18
-18:
-	br label %1
-19:
+	%v0 = alloca i8
+	store i8 9, i8* %v0
+	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str, i64 0, i64 0))
+	%v1 = load i8, i8* %v0
+	%v2 = zext i8 %v1 to i32
+	call void @putch(i32 %v2)
+	call void @putstr(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str.1, i64 0, i64 0))
 	ret i32 0
 }
 

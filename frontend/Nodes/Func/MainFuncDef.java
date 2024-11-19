@@ -53,7 +53,7 @@ public class MainFuncDef extends Node {
         SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
         Function mainFunc = new Function("@main", IntType.INT32);
         funcSymbol.setLlvmValue(mainFunc);
-        IRManager.getInstance().setCurFunc(mainFunc);
+        IRManager.getInstance().addAndSetCurFunc(mainFunc);
         // 创建新的Block
         BasicBlock block = new BasicBlock(IRManager.getInstance().genBlockName());
         IRManager.getInstance().addAndSetCurBlock(block);

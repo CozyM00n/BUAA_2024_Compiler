@@ -44,11 +44,11 @@ public class LAndExp extends Node {
                 genBranchInstr(eqExp, trueBlock, falseBlock);
             }
             else {
-                BasicBlock nextBlock = new BasicBlock("");
+                BasicBlock nextBlock = new BasicBlock(IRManager.getInstance().genBlockName());
                 Value eqExp = children.get(i).generateIR(); // 这里eqExp仍有可能是i32/i1
                 genBranchInstr(eqExp, nextBlock, falseBlock);
                 IRManager.getInstance().addAndSetCurBlock(nextBlock);
-                IRManager.getInstance().resetBlockName(nextBlock);
+                // IRManager.getInstance().resetBlockName(nextBlock);
             }
         }
     }

@@ -20,10 +20,10 @@ public class LOrExp extends Node {
                 ((LAndExp) children.get(i)).genAndIR(trueBlock, falseBlock);
             }
             else {
-                BasicBlock nextBlock = new BasicBlock("");
+                BasicBlock nextBlock = new BasicBlock(IRManager.getInstance().genBlockName());
                 ((LAndExp) children.get(i)).genAndIR(trueBlock, nextBlock);
                 IRManager.getInstance().addAndSetCurBlock(nextBlock);
-                IRManager.getInstance().resetBlockName(nextBlock);
+                //IRManager.getInstance().resetBlockName(nextBlock);
             }
         }
     }

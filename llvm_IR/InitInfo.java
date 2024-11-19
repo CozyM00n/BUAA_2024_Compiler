@@ -8,21 +8,15 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class InitInfo {
-    // 这里的Initial特指编译时就能计算出结果（Int）的初始值
+    // 这里的特指编译时就能计算出结果（Int）的初始值
     // 包括全局变量 全局常量
     private LLVMType llvmType;
-    private ArrayList<Integer> initValue;
+    private ArrayList<Integer> initValues; // 通过InitVal中调用calculate得到
     private String initString;
 
-    /*public InitInfo(LLVMType llvmType, ArrayList<Integer> initValue) {
+    public InitInfo(LLVMType llvmType, ArrayList<Integer> initValues, String initString) {
         this.llvmType = llvmType;
-        this.initValue = initValue;
-        this.initString = null;
-    }*/
-
-    public InitInfo(LLVMType llvmType, ArrayList<Integer> initValue, String initString) {
-        this.llvmType = llvmType;
-        this.initValue = initValue;
+        this.initValues = initValues;
         this.initString = initString;
     }
 
@@ -30,12 +24,12 @@ public class InitInfo {
         return llvmType;
     }
 
-    public ArrayList<Integer> getInitValue() {
-        return initValue;
+    public ArrayList<Integer> getInitValues() {
+        return initValues;
     }
 
     public boolean isInitialized() {
-        return initValue != null;
+        return initValues != null;
     }
 
     @Override
@@ -47,12 +41,12 @@ public class InitInfo {
                 return llvmType + " zeroinitializer";
         }
         if (this.initString == null) {
-            if (llvmType instanceof IntType) return llvmType + " " + initValue.get(0).toString();
+            if (llvmType instanceof IntType) return llvmType + " " + initValues.get(0).toString();
             else { // 数组
                 StringBuilder sb = new StringBuilder(llvmType.toString());
                 sb.append(" [");
                 LLVMType eleType = ((ArrayType) llvmType).getEleType();
-                String str = initValue.stream()
+                String str = initValues.stream()
                         .map(i -> eleType + " " + i)
                         .collect(Collectors.joining(", ")); // i 是流中的每个元素
                 sb.append(str).append("]");

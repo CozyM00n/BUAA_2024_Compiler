@@ -1,6 +1,6 @@
-# BUAA_2024_Compiler
+[TOC]
 
-> 缺的; ] } 已经补全
+# BUAA_2024_Compiler
 
 ### TODO
 
@@ -17,11 +17,9 @@
 
 ## 词法分析
 
-lexer 包下的文件用于进行词法分析。
-
 #### 具体实现
 
-新建枚举类TokenType用于表示如下单词类别（关键字+标识符名称）。
+新建枚举类`TokenType`用于表示如下单词类别（关键字+标识符名称）。
 
 ![image-20241023153003250](README/image-20241023153003250.png)
 
@@ -183,19 +181,22 @@ else { // PrimaryExp
 
 这一部分的目标是：根据语法、语义分析生成的AST构建出LLVM IR。
 
-#### 常量的计算
-
-Node新增了`calculate()`方法，用于计算常量的初始值。
-
-新增InitialVal类，保存`ConstInitVal`这一SVT的具体值。
-
 ### LLVM构建单元
+
+<img src="README/image-20241118231402943.png" alt="LLVM语法层级结构" style="zoom:67%;" />
 
 #### Module
 
-一个`.ll`文件对应的就是一个Module。由若干`GlobalValue`构成，其中GV可以是：全局变量/函数。
+一个`.c`/`.cpp`文件是一个编译单元；一个`.ll`文件对应一个`Module`。由若干`GlobalValue`构成，其中GV可以是：全局变量/函数。
 
+#### BasicBlock 基本块
 
+理论课所讲的基本块，而非大括号括起来的、语法成分`Block`。
+
+基本块的划分：
+
+- `{}` ：**`Block`语法成分**的第一个语句为基本块的第一条语句。（eg. 函数定义的`{}`，函数体内部的`Block`）
+- `BasicBlock` **以 terminator instruction（`ret`、`br` 等）结尾**。
 
 #### Value类
 
@@ -226,39 +227,18 @@ Node新增了`calculate()`方法，用于计算常量的初始值。
 常量定义 ConstDef → Ident [ '[' ConstExp ']' ] '=' ConstInitVal (如果使用了Ident必须是常量)
 ```
 
-常量**必须有初始值**，常量数组不需要每一个元素都有初始值，但是未赋值的部分编译器需要将其置 0。
-
-#### 关于赋初值
-
-由于全局变/常量的初值表达式也必须是常量表达式`ConstExp`，也就是可以直接计算出来。ConstExp中使用的标识符必须是普通常量，不包括数组元素、函数返回值。
-
-新建`InitInfo`类，为**全局**变/常量赋初值时使用。
-
-**对于局部变量：**
-
-其初始值无法直接计算，需要在`genIR`阶段通过`Value`得到。其`varSymbol`的`InitInfo`字段为`null`。
-
-**对于局部常量：**
-
-
-
-**对于全局变/常量：**
-
-全局变/常量无论是否有`=`为其赋值，都会为其`symbol`赋一个非`null`的`InitInfo`。
-
-- 如果未赋值，`InitInfo`中的`InitValue`字段为`null`
-
-- 如果有赋值，`InitInfo`中的`InitValue`字段为对应的数组。特别地，如果是字符串为char数组赋值，对应`str`不为`null`，而是对应长度（补完`\0`）的字符串。
+- 
 
 #### 局部变量
 
-与全局变量不同，局部变量在赋值前需要**申请一块内存**。
-申请内存需要使用`Alloca`指令，其返回值是一个对应类型的指针（如果是非数组，就返回INT32/8的指针，如果是数组就返回`ArrayType`的指针）。同时该变量对应`varSymbol`的`llvmValue`也为这个`alloc`指令。
-
-为对象分配完内存后，如果有初始值，就可以使用`store`指令将初始值存入那块内存。
-`store i32 %1, i32* %3`，意思是把`from`保存的值，存入`to`这一内存地址（例如`alloca`）。
-
-当我们需要访问一个对象，就需要从对应内存中读取数据，`load`指令格式为`%6 = load i32, i32* %4`，`type`是这块地址上的对象类型，逗号后是指针（可以是`alloca`指令或`GlobalVar`）。打印的是指针的类型+指针的`name`。
+> 与全局变量不同，局部变量在赋值前需要**申请一块内存**。
+> 申请内存需要使用`Alloca`指令，其返回值是一个对应类型的指针（如果是非数组，就返回INT32/8的指针，如果是数组就返回`ArrayType`的指针）。
+>
+> 为对象分配完内存后，如果有初始值，就可以使用`store`指令将初始值存入那块内存。
+> `store i32 %1, i32* %3`，意思是把`from`保存的值，存入`to`这一内存地址（例如`alloca`）。
+>
+> 当我们需要访问一个对象，就需要从对应内存中读取数据，`load`指令格式为`%6 = load i32, i32* %4`，`type`是这块地址上的对象类型，逗号后是指针（可以是`alloca`指令或`GlobalVar`）。打印的是指针的类型+指针的`name`。
+>
 
 ```
 ; int b = a;
@@ -267,9 +247,75 @@ Node新增了`calculate()`方法，用于计算常量的初始值。
 store i32 %2, i32* %1, align 4 ; 将寄存器%2的值存入寄存器%1表示的地址中
 ```
 
+#### 变/常量定义（Var/ConstDef）
+
+对应`generateIR`方法：
+
+1. 实时更新全局`curSymbolId`
+2. 设置`symbol`的`llvmType`属性。
+3. `symbol`的`InitInfo`属性：
+   - 对于全局变量/常量，设置`symbol.InitInfo`属性。
+     - 如果有`=`为其赋值，`InitInfo`中的`InitValues`字段为一个初值数组。特别地，如果是字符串为char数组赋值，对应`str`不为`null`，而是对应长度（补完`\0`）的字符串。
+     - 如果未赋值，`InitInfo`中的`InitValues`字段为`null`。
+   - 对于局部变量，其初始值无法直接计算，其`symbol.InitInfo = null`。
+4. 设置`symbol`的`llvmValue`属性。
+   - 全局变量是其`globalVar`。
+   - 局部变量是`Alloca`指令的实例。
+
+##### 关于赋初值
+
+新建`InitInfo`类，为**全局**变/常量赋初值时使用。
+
+> ConstExp中使用的标识符必须是普通常量，不包括数组元素、函数返回值。
+>
+> 
+>
+> 对于任何有初始值的**字符数组**，无论是否用字符串去初始化，都是需要补0的。
+>
+> **唯一不需要**编译器置0的情况只有**局部变量int数组部分初始化。**
+>
+> **测试数据保证不会对未初始化的数组元素进行访问。**
+
+```java
+public class InitInfo {
+    // 这里的Initial特指编译时就能计算出结果（Int）的初始值
+    // 包括全局变量 全局常量 局部常量
+    private LLVMType llvmType;
+    private ArrayList<Integer> initValue;
+    private String initString;
+}
+```
+
+#### 常量的计算
+
+`constExp`是可以直接算到具体的数字的，例如全局变量、常量赋值，数组声明中的N，**最多涉及从表中得到该常量的具体数值**而不涉及存取指令。`Node`新增了`calculate()`方法返回`int`，用于计算常量的初始值。
+
+<img src="README/image-20241119151823739.png" alt="image-20241119151823739" style="zoom:45%;" />
+
+#### 虚拟寄存器命名
+
 
 
 #### 函数
+
+##### 函数定义
+
+对应`generateIR`方法：
+
+为函数定义生成中间代码主要包括以下几步：
+
+1. 新建`Function`并设为`FuncSymbol`的`llvmValue`。
+
+2. 遍历参数表，为每一个参数生成一个`Param`设置为符号的`llvmValue`。对于符号的`llvmType`，**如果参数是数组，`llvmType`将是一个指向数组元素类型（int32/8）的指针**，否则就是元素的正常类型。
+
+3. **新建**`BasicBlock`+在`IRManager`中**更新**`curBlock`为当前`Block`
+
+4. 为**参数**生成所需要的中间代码。具体地，为该参数对应的`varSymbol`设置`llvmValue`。如果是数组，`llvmValue`就是`param`；**如果是非数组，需要复制形参信息，要新`alloc`一块新内存并将`param`作为`from`存入**。
+
+5. 调用`Block`生成中间代码
+
+
+当数组作为LVal被访问时，我们取出它的`varSymbol`。这个`varSymbol`如果是普通变量，就会是一个指向整个数组的指针；如果是函数形参对应的`param`，就会是一个指向`INT32/8`的指针。
 
 ##### 函数调用
 
@@ -279,24 +325,8 @@ store i32 %2, i32* %1, align 4 ; 将寄存器%2的值存入寄存器%1表示的�
 public class Function extends User {
     private LLVMType retType;
     private ArrayList<Param> params;
-
-    public Function(String name, LLVMType retType) {
-        super(name, OtherType.FUNCTION);
-        this.retType = retType;
-    }
 }
 ```
-
-##### 函数与基本块
-
-基本块的划分：
-
-- `{}` ：**`Block`语法成分**的第一个语句为基本块的第一条语句。（eg. 函数定义的`{}`，函数体内部的`Block`）
-- `if`条件判断划分出的基本块：`trueBlock`，`falseBlock`，`followBlock`
-
-##### 函数、基本块与符号表
-
-
 
 #### 输入输出
 
@@ -305,14 +335,6 @@ public class Function extends User {
 ```
 
 #### 数组
-
-##### 关于初始值
-
-对于任何有初始值的**字符数组**，无论是否用字符串去初始化，都是需要补0的。
-
-**唯一不需要**编译器置0的情况只有**局部变量int数组部分初始化。**
-
-**测试数据保证不会对未初始化的数组元素进行访问。**
 
 ```c
 // 局部变量
@@ -327,33 +349,9 @@ const char ch1[10] = "hello";
 
 
 
-##### 在函数中使用数组
 
-为函数定义生成中间代码包括以下几步：
-
-1. 设置`SymbolManager`中当前`funcSymbol`
-
-2. 新建Function并设置相关信息
-
-3. 为参数的symbol生成`param`信息。具体地，如果参数是数组，param的`llvmType`将是一个**指向int的指针**。
-
-4. **新建**`BasicBlock`+在`IRManager`中**更新**`curBlock`为当前`Block`
-
-5. 为**参数**生成所需要的中间代码。具体地，为该参数对应的`varSymbol`设置`llvmValue`。如果是数组，`llvmValue`就是`param`；如果是非数组，要新`alloc`一块新内存并将`param`作为`from`存入。
-
-6. 调用`Block`生成中间代码
-
-   具体地，`Block`的`genIR`的行为有：
-
-   - 进入了新的Block，更新当前符号表
-
-当数组作为LVal被访问时，我们取出它的`varSymbol`。这个`varSymbol`如果是普通变量，就会是一个指向整个数组的指针；如果是函数形参对应的`param`，就会是一个指向`INT32/8`的指针。
 
 #### 条件语句
-
-`BasicBlock` **以 terminator instruction（`ret`、`br` 等）结尾**。
-
-这里的`BasicBlock`应该是指基本块，而非大括号括起来的块。
 
 ==todo== return之后是否要新建BB
 
@@ -369,7 +367,7 @@ const char ch1[10] = "hello";
 
 设置当前块为`followBlock`。
 
-##### `Block`重命名
+
 
 
 
@@ -378,6 +376,8 @@ const char ch1[10] = "hello";
 ##### 如何在genIR中使用符号表
 
 同语义分析一样，中间代码生成也需要遍历语法树并获取符号表相关信息。我没有选择重建符号表，而是直接使用已建好的表的信息。
+
+
 
 1.在**语义分析阶段**对**变量或常量**会生成对应的`Symbol`（在变量定义或函数形参定义）。如果加入符号表成功，就为该`Symbol`赋一个全局唯一标识`symbolId`（从1开始递增）。
 
@@ -391,7 +391,9 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 }
 ```
 
-2.中间代码生成阶段设置全局变量`curSymbolId`记录此时定义到了哪个变量。每当遍历到`VarDef`或`FuncFParam`时将`curSymbolId`更新为当前变量的id。
+2.中间代码生成阶段，设置全局变量`curSymbolId`记录此时定义到了哪个变量。每当遍历到变量定义（`VarDef`或`FuncFParam`）时将`curSymbolId`更新为当前变量的`id`。
+
+3.每当进入**`Block`语法成分**，**更新**当前符号表为这个Block对应的符号表。退出这个块时更新当前符号表为此Block对应符号表的父亲表。
 
 ##### 符号表中记录的信息
 

@@ -11,6 +11,7 @@ import llvm_IR.Instr.LoadInstr;
 import llvm_IR.llvm_Types.ArrayType;
 import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.LLVMType;
+import llvm_IR.llvm_Types.PointerType;
 import llvm_IR.llvm_Values.Constant;
 import llvm_IR.llvm_Values.Value;
 import utils.Error;
@@ -80,14 +81,19 @@ public class LValExp extends Node {
         }
     }
 
-    public Value generateIR() {
+    public Value generateIR() { // todo
         String name = ((TokenNode)children.get(0)).getTokenValue();
         // 必须保证使用的Symbol是到目前为止定义过的
         Symbol symbol = SymbolManager.getInstance().getSymbolForIR(name);
         if (symbol instanceof VarSymbol) {
             VarSymbol varSymbol = (VarSymbol) symbol;
             if (varSymbol.getTypeInfo().getIsArray()) {
-                LLVMType eleType = ((ArrayType)varSymbol.getLlvmType()).getEleType();
+                LLVMType eleType;
+                if (varSymbol.getLlvmType() instanceof PointerType) {
+                    eleType = ((PointerType) varSymbol.getLlvmType()).getReferencedType();
+                } else {
+                     eleType = ((ArrayType)varSymbol.getLlvmType()).getEleType();
+                }
                 if (children.size() >= 2) { // 取数组的某个index的值
                     Value offset = children.get(2).generateIR();
                     // 这里varSymbol的LlvmValue是一个指向数组/INT的指针
@@ -107,7 +113,12 @@ public class LValExp extends Node {
         else if (symbol instanceof ConstSymbol) {
             ConstSymbol constSymbol = (ConstSymbol) symbol;
             if (constSymbol.getTypeInfo().getIsArray()) {
-                LLVMType eleType = ((ArrayType)constSymbol.getLlvmType()).getEleType();
+                LLVMType eleType;
+                if (constSymbol.getLlvmType() instanceof PointerType) {
+                    eleType = ((PointerType) constSymbol.getLlvmType()).getReferencedType();
+                } else {
+                    eleType = ((ArrayType)constSymbol.getLlvmType()).getEleType();
+                }
                 if (children.size() >= 2) {
                     Value offset = children.get(2).generateIR();
                     Instr gepInstr = new GEPInstr(IRManager.getInstance().genVRName(),
@@ -133,13 +144,18 @@ public class LValExp extends Node {
     public Value genIRForAssign() {
         String name = ((TokenNode)children.get(0)).getTokenValue();
         // 必须保证使用的Symbol是到目前为止定义过的
-        Symbol symbol = SymbolManager.getInstance().getSymbolForIR(name); // 一定是varSymbol
+        VarSymbol varSymbol = (VarSymbol) SymbolManager.getInstance().getSymbolForIR(name); // 一定是varSymbol
         if (children.size() == 1) {
-            return symbol.getLlvmValue();
+            return varSymbol.getLlvmValue();
         } else { // 数组
-            LLVMType eleType = ((ArrayType) ((VarSymbol)symbol).getLlvmType()).getEleType();
+            LLVMType eleType;
+            if (varSymbol.getLlvmType() instanceof PointerType) {
+                eleType = ((PointerType) varSymbol.getLlvmType()).getReferencedType();
+            } else {
+                eleType = ((ArrayType)varSymbol.getLlvmType()).getEleType();
+            }
             Value offset = children.get(2).generateIR();
-            return new GEPInstr(IRManager.getInstance().genVRName(), symbol.getLlvmValue(), offset, eleType);
+            return new GEPInstr(IRManager.getInstance().genVRName(), varSymbol.getLlvmValue(), offset, eleType);
         }
     }
 }
