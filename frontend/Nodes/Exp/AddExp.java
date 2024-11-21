@@ -56,12 +56,10 @@ public class AddExp extends Node {
         for (int i = 1; i < children.size(); i++) {
             if (((TokenNode)children.get(i)).getTokenType() == TokenType.PLUS) {
                 op2 = children.get(++i).generateIR();
-                // String name = IRManager.getInstance().genVirRegName();
                 instr = BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.ADD, op1, op2);
                 op1 = instr;
             } else {
                 op2 = children.get(++i).generateIR();
-                // String name = IRManager.getInstance().genVirRegName();
                 instr = BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, op1, op2);
                 op1 = instr;
             }

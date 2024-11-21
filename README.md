@@ -401,11 +401,36 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 
 ### 关于类型转换
 
+##### 返回值设置
 
+`Char`返回`i8`
+
+对于等号右边的表达式：
+
+- 如果涉及二元运算（`binaryInstr`）返回一定是i32
+- `UnaryExp`中的：无论是有`UnaryOp`中的`+`，单个`Char`返回`i8`，非运算`!`返回`i1`。
+
+##### 类型转换判断点
+
+`StoreInstr`：如果两个Int类型不一样，就将`from`转为和`to`一样的类型。
+
+`PutIntInstr`/`PutChInstr`：如果不是`Int32`就转为`Int32`。
+
+`ReturnInstr`：如果返回的`Value`和函数定义处返回值不一样就转为后者。
+
+`BinInstr`： 如果有操作数不是`i32`就转。
 
 ### 没有设置Name的指令
 
 `store`，`ret`
+
+### 注意
+
+#### 转义
+
+##### 字符串转义
+
+
 
 ### 附录
 

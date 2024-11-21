@@ -105,17 +105,14 @@ public class UnaryExp extends Node {
         }
         else if (children.get(0) instanceof UnaryOp) {
             TokenNode uOp = (TokenNode)((children.get(0)).getChildren()).get(0);
-            Value op1 = new Constant(0, IntType.INT32);
             Value op2 = children.get(1).generateIR();
             if (uOp.getTokenType() == TokenType.PLUS) {
                 return op2;
             } else if (uOp.getTokenType() == TokenType.MINU) {
                 return BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, new Constant(0, IntType.INT32), op2);
             } else { // NOT
-                Instr instr = new IcmpInstr(IRManager.getInstance().genVRName(),
+                return new IcmpInstr(IRManager.getInstance().genVRName(),
                         IcmpInstr.cmpOp.EQ, new Constant(0, op2.getLlvmType()), op2);
-                instr = new ZextInstr(IRManager.getInstance().genVRName(), instr, IntType.INT32);
-                return instr;
             }
         }
         else { // Function Call : Ident '(' [FuncRParams] ')'

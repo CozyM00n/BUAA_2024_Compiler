@@ -16,7 +16,7 @@ public class GlobalVar extends User {
     }
 
     @Override
-    public String toString() { // todo const???
+    public String toString() {
         return this.name + " = dso_local global " + initInfo;
     }
 }

@@ -81,7 +81,7 @@ public class LValExp extends Node {
         }
     }
 
-    public Value generateIR() { // todo
+    public Value generateIR() { // todo 优化结构
         String name = ((TokenNode)children.get(0)).getTokenValue();
         // 必须保证使用的Symbol是到目前为止定义过的
         Symbol symbol = SymbolManager.getInstance().getSymbolForIR(name);

@@ -13,7 +13,7 @@ public class TokenStream {
     }
 
     public Token read() {
-        pos++; // todo
+        pos++;
         if(pos >= tokenList.size()) {
             return null;
         }

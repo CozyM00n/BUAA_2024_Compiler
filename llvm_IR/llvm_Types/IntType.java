@@ -7,6 +7,10 @@ public class IntType extends LLVMType {
         this.length = length;
     }
 
+    public int getLength() {
+        return length;
+    }
+
     public static IntType INT1 = new IntType(1);
     public static IntType INT8 = new IntType(8);
     public static IntType INT32 = new IntType(32);

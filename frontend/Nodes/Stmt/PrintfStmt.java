@@ -67,18 +67,15 @@ public class PrintfStmt extends Stmt {
                     && (string.charAt(i+1) == 'd' || string.charAt(i+1) == 'c')) {
                 if (sb.length() != 0) {
                     StringLiteral stringLiteral = new StringLiteral(
-                            IRManager.getInstance().genStrLiteralName(), sb.toString(), sb.length() - 2*newLineNum);
-                    Instr putstrInstr = new PutStrInstr(stringLiteral);
+                            IRManager.getInstance().genStrName(), sb.toString(), sb.length() - 2*newLineNum);
+                    new PutStrInstr(stringLiteral);
                     sb.setLength(0); newLineNum = 0;
                 }
                 if (string.charAt(i+1) == 'd') {
-                    Instr putIntInstr = PutIntInstr.checkAndGenPutInt(expList.get(cnt++).generateIR());
+                    PutIntInstr.checkAndGenPutInt(expList.get(cnt++).generateIR());
                 } else {
-                    Value value = expList.get(cnt++).generateIR(); // putch函数接受i32类型参数
-                    if (value.getLlvmType() != IntType.INT32) {
-                        value = new ZextInstr(IRManager.getInstance().genVRName(), value, IntType.INT32);
-                    }
-                    Instr putChInstr = new PutChInstr(value);
+                    Value value = expList.get(cnt++).generateIR();
+                    PutChInstr.checkAndGenPutCh(value);
                 }
                 i++;
             }
@@ -92,7 +89,7 @@ public class PrintfStmt extends Stmt {
         }
         if (sb.length() != 0) {
             StringLiteral stringLiteral = new StringLiteral(
-                    IRManager.getInstance().genStrLiteralName(), sb.toString(), sb.length() - 2*newLineNum);
+                    IRManager.getInstance().genStrName(), sb.toString(), sb.length() - 2*newLineNum);
             Instr putstrInstr = new PutStrInstr(stringLiteral);
         }
         return null;

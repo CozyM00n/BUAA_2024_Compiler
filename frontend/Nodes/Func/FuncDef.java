@@ -86,10 +86,6 @@ public class FuncDef extends Node {
         funcSymbol.setLlvmValue(function);
     }
 
-    public void setParaLLVM() {
-
-    }
-
     @Override
     public Value generateIR() {
         SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);

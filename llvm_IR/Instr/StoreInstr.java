@@ -17,7 +17,6 @@ public class StoreInstr extends Instr {
     // store i32 %1, i32* %3
     // int to = from;
     public static StoreInstr checkAndGenStoreInstr(Value from, Value to) {
-        // 仅限int32和int8 的转换
         assert from.getLlvmType() instanceof IntType;
         assert to.getLlvmType() instanceof PointerType;
         LLVMType toType = ((PointerType) to.getLlvmType()).getReferencedType();
@@ -26,10 +25,11 @@ public class StoreInstr extends Instr {
                 ((Constant) from).switchType(toType);
             }
             else {
-                if (from.getLlvmType() == IntType.INT32) { // char ch = 3;
-                    from = new TruncInstr(IRManager.getInstance().genVRName(), from, toType);
-                } else if (from.getLlvmType() == IntType.INT8) { // int x = ch;
+                if (((IntType) from.getLlvmType()).getLength() < ((IntType) toType).getLength()) {
                     from = new ZextInstr(IRManager.getInstance().genVRName(), from, toType);
+                }
+                else {
+                    from = new TruncInstr(IRManager.getInstance().genVRName(), from, toType);
                 }
             }
         }

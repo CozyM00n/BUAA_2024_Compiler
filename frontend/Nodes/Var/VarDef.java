@@ -107,7 +107,8 @@ public class VarDef extends Node {
             varSymbol.setLlvmValue(alloc);
             // 如果有初始值，先求出其Value，再用store指令存入
             if (children.get(children.size() - 1) instanceof InitVal) {
-                Value from = ((InitVal) children.get(children.size() - 1)).generateIRList(0, llvmType).get(0);
+                Value from = ((InitVal) children.get(children.size() - 1))
+                        .generateIRList(0, llvmType).get(0);
                 StoreInstr.checkAndGenStoreInstr(from, alloc);
             }
         }

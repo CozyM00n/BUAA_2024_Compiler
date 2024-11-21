@@ -7,6 +7,7 @@ import llvm_IR.Instr.Instr;
 import llvm_IR.Instr.ZextInstr;
 import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.VoidType;
+import llvm_IR.llvm_Values.Constant;
 import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
@@ -19,7 +20,11 @@ public class PutIntInstr extends CallInstr {
 
     public static PutIntInstr checkAndGenPutInt(Value intValue) {
         if (intValue.getLlvmType() != IntType.INT32) {
-            intValue = new ZextInstr(IRManager.getInstance().genVRName(), intValue, IntType.INT32);
+            if (intValue instanceof Constant) {
+                ((Constant) intValue).switchToi32();
+            } else {
+                intValue = new ZextInstr(IRManager.getInstance().genVRName(), intValue, IntType.INT32);
+            }
         }
         return new PutIntInstr(intValue);
     }

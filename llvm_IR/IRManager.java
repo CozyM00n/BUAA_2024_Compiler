@@ -75,7 +75,7 @@ public class IRManager {
     }
 
     /*** Generate Name ***/
-    public String genStrLiteralName() {
+    public String genStrName() {
         String name;
         if (strLiteralNum == 0) name = "@.str";
         else name = "@.str." + strLiteralNum;

@@ -40,7 +40,7 @@ public class ReturnStmt extends Stmt {
             retValue = children.get(1).generateIR();
         else
             retValue = null;
-        ReturnInstr instr = ReturnInstr.checkAndGenRet(retValue, funcSymbol.getLlvmValue().getRetType());
+        ReturnInstr.checkAndGenRet(retValue, funcSymbol.getLlvmValue().getRetType());
         return null;
     }
 }
