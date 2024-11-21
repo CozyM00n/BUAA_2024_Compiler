@@ -246,7 +246,7 @@ public class Lexer {
             }
             content.append(curChar); // "
             curChar = getChar();
-            return new Token(TokenType.STRCON, content.toString(), lineno);
+            return new Token(TokenType.STRCON, content.toString().replace("\\n", "\n"), lineno);
         }
         else if (isEnd()) {
             return new Token(TokenType.EOFTK, content.toString(), lineno);

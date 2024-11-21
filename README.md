@@ -428,7 +428,7 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 
 #### 转义
 
-##### 字符串转义
+转义可能出现在字符串和Char中。
 
 
 

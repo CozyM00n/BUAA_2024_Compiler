@@ -2,7 +2,7 @@ package llvm_IR.Instr;
 
 import Enums.InstrType;
 import llvm_IR.llvm_Types.VoidType;
-import llvm_IR.llvm_Values.BasicBlock;
+import llvm_IR.BasicBlock;
 import llvm_IR.llvm_Values.Value;
 
 public class BranchInstr extends Instr {

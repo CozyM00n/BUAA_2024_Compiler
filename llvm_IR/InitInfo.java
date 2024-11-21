@@ -55,7 +55,7 @@ public class InitInfo {
         }
         else { // 字符串常量
             return llvmType.toString() + " c\"" +
-                    initString.replace("\0", "\\00") + "\"";
+                    initString.replace("\0", "\\00").replace("\n", "\\0A") + "\"";
         }
     }
 }

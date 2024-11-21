@@ -1,7 +1,5 @@
 package llvm_IR;
 
-import llvm_IR.llvm_Values.BasicBlock;
-
 public class ForLoop {
     private BasicBlock forStmt2Block;
     private BasicBlock followBlock;

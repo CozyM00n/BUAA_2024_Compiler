@@ -7,7 +7,7 @@ import llvm_IR.Instr.BranchInstr;
 import llvm_IR.Instr.IcmpInstr;
 import llvm_IR.Instr.JumpInstr;
 import llvm_IR.llvm_Types.IntType;
-import llvm_IR.llvm_Values.BasicBlock;
+import llvm_IR.BasicBlock;
 import llvm_IR.llvm_Values.Constant;
 import llvm_IR.llvm_Values.Value;
 

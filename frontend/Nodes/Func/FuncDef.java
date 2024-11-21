@@ -15,7 +15,7 @@ import llvm_IR.Instr.ReturnInstr;
 import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.LLVMType;
 import llvm_IR.llvm_Types.VoidType;
-import llvm_IR.llvm_Values.BasicBlock;
+import llvm_IR.BasicBlock;
 import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;

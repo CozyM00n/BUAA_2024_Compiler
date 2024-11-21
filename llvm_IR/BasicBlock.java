@@ -1,8 +1,9 @@
-package llvm_IR.llvm_Values;
+package llvm_IR;
 
 import llvm_IR.Instr.Instr;
 import llvm_IR.User;
 import llvm_IR.llvm_Types.OtherType;
+import llvm_IR.llvm_Values.Value;
 
 import java.util.LinkedList;
 import java.util.stream.Collectors;

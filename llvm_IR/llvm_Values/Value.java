@@ -35,4 +35,7 @@ public class Value {
     public String toTypeAndName() { // i32 %5
         return llvmType + " " + name;
     }
+
+    public void genAsm() {
+    }
 }

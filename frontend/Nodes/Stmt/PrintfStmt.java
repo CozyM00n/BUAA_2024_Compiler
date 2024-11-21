@@ -55,21 +55,17 @@ public class PrintfStmt extends Stmt {
 
     @Override
     public Value generateIR() {
-//        ArrayList<Value> expValues = new ArrayList<>();
-//        for (Exp exp : expList) {
-//            expValues.add(exp.generateIR());
-//        }
         String string = stringConst.substring(1, stringConst.length() - 1);
         StringBuilder sb = new StringBuilder();
-        int cnt = 0, newLineNum = 0;
+        int cnt = 0;
         for (int i = 0; i < string.length(); i++) {
             if (string.charAt(i) == '%' && i != string.length() - 1
                     && (string.charAt(i+1) == 'd' || string.charAt(i+1) == 'c')) {
                 if (sb.length() != 0) {
                     StringLiteral stringLiteral = new StringLiteral(
-                            IRManager.getInstance().genStrName(), sb.toString(), sb.length() - 2*newLineNum);
+                            IRManager.getInstance().genStrName(), sb.toString(), sb.length());
                     new PutStrInstr(stringLiteral);
-                    sb.setLength(0); newLineNum = 0;
+                    sb.setLength(0);
                 }
                 if (string.charAt(i+1) == 'd') {
                     PutIntInstr.checkAndGenPutInt(expList.get(cnt++).generateIR());
@@ -79,9 +75,8 @@ public class PrintfStmt extends Stmt {
                 }
                 i++;
             }
-            else if (string.charAt(i) == '\\') {
+            else if (string.charAt(i) == '\n') {
                 sb.append("\\0A"); i++;
-                newLineNum++;
             }
             else {
                 sb.append(string.charAt(i));
@@ -89,8 +84,8 @@ public class PrintfStmt extends Stmt {
         }
         if (sb.length() != 0) {
             StringLiteral stringLiteral = new StringLiteral(
-                    IRManager.getInstance().genStrName(), sb.toString(), sb.length() - 2*newLineNum);
-            Instr putstrInstr = new PutStrInstr(stringLiteral);
+                    IRManager.getInstance().genStrName(), sb.toString(), sb.length());
+            new PutStrInstr(stringLiteral);
         }
         return null;
     }

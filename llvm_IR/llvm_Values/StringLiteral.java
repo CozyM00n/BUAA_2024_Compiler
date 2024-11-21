@@ -23,6 +23,6 @@ public class StringLiteral extends Value {
     @Override
     public String toString() {
         return name + " = private unnamed_addr constant " + ((PointerType) llvmType).getReferencedType()
-                + " c\"" + string + "\\00\", align 1";
+                + " c\"" + string/*.replace("\n", "\\0A")*/ + "\\00\", align 1";
     }
 }

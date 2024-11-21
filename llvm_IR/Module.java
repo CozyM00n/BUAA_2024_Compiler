@@ -64,4 +64,13 @@ public class Module extends Value {
             sb.append(func.toString()).append("\n");
         return sb.toString();
     }
+
+    public void genAsm() {
+        for (GlobalVar gv : globalVarList)
+            gv.genAsm();
+        for (StringLiteral str : stringLiteralList)
+            str.genAsm();
+        for (Function func : funcList)
+            func.genAsm();
+    }
 }

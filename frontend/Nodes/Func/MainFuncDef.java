@@ -9,7 +9,7 @@ import frontend.Symbol.SymbolManager;
 import llvm_IR.Function;
 import llvm_IR.IRManager;
 import llvm_IR.llvm_Types.IntType;
-import llvm_IR.llvm_Values.BasicBlock;
+import llvm_IR.BasicBlock;
 import llvm_IR.llvm_Values.Value;
 import utils.Error;
 import utils.Printer;
