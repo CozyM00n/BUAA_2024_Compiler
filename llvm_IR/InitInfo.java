@@ -54,8 +54,28 @@ public class InitInfo {
             }
         }
         else { // 字符串常量
-            return llvmType.toString() + " c\"" +
-                    initString.replace("\0", "\\00").replace("\n", "\\0A") + "\"";
+            StringBuilder sb = getSb();
+            return llvmType.toString() + " c\"" + sb + "\"";
         }
+    }
+
+    private StringBuilder getSb() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < initString.length(); i++) {
+            // 注意： 10个转义符中'按照原样输出
+            switch (initString.charAt(i)) {
+                case 7 : sb.append("\\07"); break;
+                case 8 : sb.append("\\08"); break;
+                case 9 : sb.append("\\09"); break;
+                case 10 : sb.append("\\0A"); break;
+                case 11 : sb.append("\\0B"); break;
+                case 12 : sb.append("\\0C"); break;
+                case '\"' : sb.append("\\22"); break;
+                case '\\' : sb.append("\\\\"); break; // 输出2个反斜杠\\
+                case '\0' : sb.append("\\00"); break;
+                default: sb.append(initString.charAt(i));
+            }
+        }
+        return sb;
     }
 }

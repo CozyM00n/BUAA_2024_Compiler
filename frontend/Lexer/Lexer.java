@@ -1,6 +1,7 @@
 package frontend.Lexer;
 
 import Enums.TokenType;
+import frontend.Nodes.Exp.Char;
 import utils.Error;
 import utils.Printer;
 
@@ -229,9 +230,11 @@ public class Lexer {
         else if (curChar == '\'') { // CharConst
             curChar = getChar(); // ASCII
             if (curChar == '\\') { // 转义 再读一个
-                content.append(curChar); curChar = getChar(); // read '\'
+                curChar = getChar();
+                content.append(getTransferChar(curChar)); // read '\'
+            } else {
+                content.append(curChar); // real ASCII
             }
-            content.append(curChar); // real ASCII
             curChar = getChar(); content.append(curChar); // read second '
             curChar = getChar(); // 提前读
             return new Token(TokenType.CHRCON, content.toString(), lineno);
@@ -240,13 +243,17 @@ public class Lexer {
             curChar = getChar();
             while (curChar != '"') {
                 if (curChar == '\\') {
-                    content.append(curChar); curChar = getChar();
+                    curChar = getChar(); // 跳过\，直接加入转义符实际的ASCII
+                    content.append(getTransferChar(curChar));
                 }
-                content.append(curChar); curChar = getChar();
+                else {
+                    content.append(curChar);
+                }
+                curChar = getChar();
             }
             content.append(curChar); // "
             curChar = getChar();
-            return new Token(TokenType.STRCON, content.toString().replace("\\n", "\n"), lineno);
+            return new Token(TokenType.STRCON, content.toString(), lineno);
         }
         else if (isEnd()) {
             return new Token(TokenType.EOFTK, content.toString(), lineno);
@@ -270,5 +277,21 @@ public class Lexer {
     public TokenStream getTokenStream() throws IOException {
         this.tokenStream = new TokenStream(getTokenList());
         return tokenStream;
+    }
+    
+    public char getTransferChar(int ch) {
+        switch (ch) {
+            case 'a' : return((char) 7);// Unicode 值 7 对应 bell 字符
+            case 'b' : return('\b');
+            case 't' : return('\t');
+            case 'n' : return('\n');
+            case 'v' : return((char) 11);
+            case 'f' : return('\f');
+            case '\"': return('\"');
+            case '\'' : return('\'');
+            case '\\' : return('\\');
+            case '\0' : return('\0');
+            default: return '\0';
+        }
     }
 }

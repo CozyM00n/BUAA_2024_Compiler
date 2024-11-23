@@ -57,7 +57,7 @@ public class PrintfStmt extends Stmt {
     public Value generateIR() {
         String string = stringConst.substring(1, stringConst.length() - 1);
         StringBuilder sb = new StringBuilder();
-        int cnt = 0;
+        int expCnt = 0;
         for (int i = 0; i < string.length(); i++) {
             if (string.charAt(i) == '%' && i != string.length() - 1
                     && (string.charAt(i+1) == 'd' || string.charAt(i+1) == 'c')) {
@@ -68,15 +68,12 @@ public class PrintfStmt extends Stmt {
                     sb.setLength(0);
                 }
                 if (string.charAt(i+1) == 'd') {
-                    PutIntInstr.checkAndGenPutInt(expList.get(cnt++).generateIR());
+                    PutIntInstr.checkAndGenPutInt(expList.get(expCnt++).generateIR());
                 } else {
-                    Value value = expList.get(cnt++).generateIR();
+                    Value value = expList.get(expCnt++).generateIR();
                     PutChInstr.checkAndGenPutCh(value);
                 }
                 i++;
-            }
-            else if (string.charAt(i) == '\n') {
-                sb.append("\\0A"); i++;
             }
             else {
                 sb.append(string.charAt(i));

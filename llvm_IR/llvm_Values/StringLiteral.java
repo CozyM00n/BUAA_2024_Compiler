@@ -6,6 +6,7 @@ import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.PointerType;
 
 public class StringLiteral extends Value {
+    // 用于printf中的字符串输出
     // @.str.2 = private unnamed_addr constant [8 x i8] c"Hello: \00", align 1
 
     private String string;
@@ -22,7 +23,8 @@ public class StringLiteral extends Value {
 
     @Override
     public String toString() {
+        // 不会有除了\n之外的转义字符
         return name + " = private unnamed_addr constant " + ((PointerType) llvmType).getReferencedType()
-                + " c\"" + string/*.replace("\n", "\\0A")*/ + "\\00\", align 1";
+                + " c\"" + string.replace("\n", "\\0A") + "\\00\", align 1";
     }
 }

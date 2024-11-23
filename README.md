@@ -428,9 +428,9 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 
 #### 转义
 
-转义可能出现在字符串和Char中。
+转义可能出现在`StringConst`和`Char`中。
 
-
+对于`StringConst`，其字符串的内容在**词法分析**封装为`Node`的时候就将`\`和其后共两个字符替换为**对应的转义字符**。只需在`InitInfo`和`StringLiteral`处的`toString`方法将其替换为llvm所需的输出即可。
 
 ### 附录
 
