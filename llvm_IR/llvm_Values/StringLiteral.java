@@ -1,5 +1,6 @@
 package llvm_IR.llvm_Values;
 
+import BackEnd.Mips.ASM.DataAsm.Asciiz;
 import llvm_IR.IRManager;
 import llvm_IR.llvm_Types.ArrayType;
 import llvm_IR.llvm_Types.IntType;
@@ -26,5 +27,10 @@ public class StringLiteral extends Value {
         // 不会有除了\n之外的转义字符
         return name + " = private unnamed_addr constant " + ((PointerType) llvmType).getReferencedType()
                 + " c\"" + string.replace("\n", "\\0A") + "\\00\", align 1";
+    }
+
+    @Override
+    public void genAsm() {
+        new Asciiz(name.substring(2).replace(".", "_"), string);
     }
 }

@@ -1,5 +1,6 @@
 package llvm_IR.llvm_Values;
 
+import BackEnd.Mips.ASM.DataAsm.Word;
 import llvm_IR.IRManager;
 import llvm_IR.InitInfo;
 import llvm_IR.User;
@@ -18,5 +19,10 @@ public class GlobalVar extends User {
     @Override
     public String toString() {
         return this.name + " = dso_local global " + initInfo;
+    }
+
+    @Override
+    public void genAsm() {
+        new Word(name.substring(1), initInfo);
     }
 }

@@ -13,6 +13,7 @@ public class Compiler {
 
         String task = "CG";
         Printer.initPrinter(task);
+        Printer.genMips = true;
 
         if (task.equals("LA")) {
             FileInputStream fin = new FileInputStream("testfile.txt");
@@ -47,7 +48,10 @@ public class Compiler {
                 System.out.println("task = CG : Found Syntax Error!");
             } else { // 只为正确的testFile生成llvm
                 compUnit.generateIR();
-                Printer.printLLVM(Module.getInstance());
+                Module module = Module.getInstance();
+                Printer.printLLVM(module);
+                module.genAsm();
+                Printer.printMips();
             }
         }
         Printer.closePrinter();

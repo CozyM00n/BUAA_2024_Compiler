@@ -10,6 +10,8 @@ import java.util.ArrayList;
 //  ConstInitVal → ConstExp | '{' [ ConstExp { ',' ConstExp } ] '}' | StringConst
 
 public class ConstInitVal extends Node {
+    // private int givenInitNum; // 记录实际初始化时给出了几个数字
+
     public ConstInitVal(SyntaxVarType type, ArrayList<Node> children) {
         super(type, children);
     }

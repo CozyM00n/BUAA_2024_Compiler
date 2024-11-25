@@ -75,7 +75,7 @@ public class VarDef extends Node {
             if (varInitVal.isStringConst()) str = varInitVal.getVarInitString(len);
         }
         // 否则initValues 为 null
-        varSymbol.setInitInfo(new InitInfo(type, initValues, str));
+        varSymbol.setInitInfo(new InitInfo(type, initValues, str, len));
     }
 
     @Override

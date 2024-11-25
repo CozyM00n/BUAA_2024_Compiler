@@ -13,11 +13,13 @@ public class InitInfo {
     private LLVMType llvmType;
     private ArrayList<Integer> initValues; // 通过InitVal中调用calculate得到
     private String initString;
+    private int givenInitNum;
 
-    public InitInfo(LLVMType llvmType, ArrayList<Integer> initValues, String initString) {
+    public InitInfo(LLVMType llvmType, ArrayList<Integer> initValues, String initString, int givenInitNum) {
         this.llvmType = llvmType;
         this.initValues = initValues;
         this.initString = initString;
+        this.givenInitNum = givenInitNum;
     }
 
     public LLVMType getLlvmType() {
@@ -26,6 +28,10 @@ public class InitInfo {
 
     public ArrayList<Integer> getInitValues() {
         return initValues;
+    }
+
+    public int getGivenInitNum() {
+        return givenInitNum;
     }
 
     public boolean isInitialized() {

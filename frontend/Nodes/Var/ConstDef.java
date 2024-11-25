@@ -84,7 +84,8 @@ public class ConstDef extends Node {
         ConstInitVal initVal = (ConstInitVal) children.get(children.size() - 1);
         String str = null;
         if (initVal.isStringConst()) str = initVal.getInitString(len);
-        constSymbol.setInitInfo(new InitInfo(constSymbol.getLlvmType(), initVal.getIntList(len), str));
+        constSymbol.setInitInfo(new InitInfo(constSymbol.getLlvmType(), initVal.getIntList(len),
+                str, len));
     }
 
     @Override

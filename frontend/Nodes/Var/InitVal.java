@@ -15,6 +15,7 @@ import java.util.ArrayList;
 // 变量初值
 //  InitVal → Exp | '{' [ Exp { ',' Exp } ] '}' | StringConst
 public class InitVal extends Node {
+
     public InitVal(SyntaxVarType type, ArrayList<Node> children) {
         super(type, children);
     }

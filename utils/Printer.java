@@ -1,5 +1,6 @@
 package utils;
 
+import BackEnd.Mips.MipsManager;
 import frontend.Lexer.Token;
 import frontend.Symbol.SymbolManager;
 import frontend.Symbol.SymbolTable;
@@ -17,6 +18,7 @@ public class Printer {
     private static FileWriter errorWriter;
     public static String hwTask;
     public static boolean enable;
+    public static boolean genMips;
 
     public static void initPrinter(String task) throws IOException {
         switch (task) {
@@ -119,6 +121,15 @@ public class Printer {
     public static void printLLVM(Module module) throws IOException {
         if (enable && hwTask.equals("CG")) {
             outputWriter.write(module.toString());
+        }
+    }
+
+    public static void printMips() throws IOException {
+        if (enable && hwTask.equals("CG") && genMips) {
+            try (FileWriter mipsWriter = new FileWriter("mips.txt")) {
+                // 块结束时会自动关闭 FileWriter
+                mipsWriter.write(MipsManager.getInstance().genMipsCode());
+            }
         }
     }
 }
