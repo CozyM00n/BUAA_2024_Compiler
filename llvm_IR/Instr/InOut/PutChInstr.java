@@ -42,7 +42,7 @@ public class PutChInstr extends CallInstr {
     public void genAsm() {
         new Comment(this.toString());
         loadValueToReg(intValue, Register.A0);
-        new LiAsm(Register.A0, 11);
+        new LiAsm(Register.V0, 11);
         new syscallAsm();
     }
 }

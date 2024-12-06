@@ -14,6 +14,6 @@ public class laAsm extends Asm {
 
     @Override
     public String toString() {
-        return "la" + toReg + ", " + fromLabel;
+        return "la" + " " + toReg + ", " + fromLabel;
     }
 }

@@ -1,6 +1,7 @@
 package llvm_IR.llvm_Values;
 
 import BackEnd.Mips.ASM.DataAsm.Asciiz;
+import BackEnd.Mips.MipsManager;
 import llvm_IR.IRManager;
 import llvm_IR.llvm_Types.ArrayType;
 import llvm_IR.llvm_Types.IntType;
@@ -12,6 +13,7 @@ public class StringLiteral extends Value {
 
     private String string;
 
+    // name = @.str.2
     public StringLiteral(String name, String string, int len) {
         super(name, new PointerType(new ArrayType(len + 1, IntType.INT8)));
         this.string = string;
@@ -31,6 +33,6 @@ public class StringLiteral extends Value {
 
     @Override
     public void genAsm() {
-        new Asciiz(name.substring(2).replace(".", "_"), string);
+        new Asciiz(MipsManager.getInstance().getStringLiteralName(name), string);
     }
 }

@@ -78,4 +78,10 @@ public class MipsManager {
                 .collect(Collectors.joining("\n")));
         return sb.toString();
     }
+
+    /** changeName ***/
+    public String getStringLiteralName(String s) {
+        // from llvm name to mips label
+        return s.substring(2).replace(".", "_");
+    }
 }

@@ -3,6 +3,7 @@ package llvm_IR.Instr;
 import BackEnd.Mips.ASM.AluAsm;
 import BackEnd.Mips.ASM.LiAsm;
 import BackEnd.Mips.ASM.MemoryAsm;
+import BackEnd.Mips.ASM.laAsm;
 import BackEnd.Mips.MipsManager;
 import BackEnd.Mips.Register;
 import Enums.InstrType;
@@ -10,6 +11,7 @@ import llvm_IR.llvm_Types.ArrayType;
 import llvm_IR.llvm_Types.LLVMType;
 import llvm_IR.llvm_Types.PointerType;
 import llvm_IR.llvm_Values.Constant;
+import llvm_IR.llvm_Values.GlobalVar;
 import llvm_IR.llvm_Values.Value;
 
 public class GEPInstr extends Instr{
@@ -45,14 +47,13 @@ public class GEPInstr extends Instr{
         }
     }
 
-    public void loadValueToReg(Value value, Register register) {
-        if (value instanceof Constant) {
-            new LiAsm(register, ((Constant) value).getValue());
+    public void loadPointerToReg(Value pointer, Register reg) {
+        if (pointer instanceof GlobalVar) {
+            // 把标签pointer的地址加载到寄存器中
+            new laAsm(reg, pointer.getName().substring(1));
         } else {
-            // 从内存中将值加载到寄存器
-            Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
-            assert offset != null;
-            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
+            int offset = MipsManager.getInstance().getOffsetOfValue(pointer);
+            new MemoryAsm(MemoryAsm.memOp.LW, reg, offset, Register.SP);
         }
     }
 
@@ -61,7 +62,7 @@ public class GEPInstr extends Instr{
         super.genAsm();
         Register pointerReg = Register.K0;
         Register offsetReg = Register.K1;
-        loadValueToReg(pointer, pointerReg);
+        loadPointerToReg(pointer, pointerReg);
         loadValueToReg(offset, offsetReg);
         // 计算偏移量
         // todo 如果offset为Constant

@@ -44,9 +44,9 @@ public class PutIntInstr extends CallInstr {
     @Override
     public void genAsm() {
         new Comment(this.toString());
-        // 将整数加载到$a0寄存器
+        // 将整数加载到$a0寄存器 $a0 = integer to print
         loadValueToReg(intValue, Register.A0);
-        new LiAsm(Register.A0, 1);
+        new LiAsm(Register.V0, 1); // code in $v0=1: putInt
         new syscallAsm();
     }
 }

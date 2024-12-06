@@ -45,7 +45,7 @@ public class TruncInstr extends Instr{
             // 从内存中将值加载到寄存器
             Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
             assert offset != null;
-            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
+            new MemoryAsm(MemoryAsm.memOp.LBU, register, offset, Register.SP);
         }
     }
 
@@ -54,9 +54,10 @@ public class TruncInstr extends Instr{
         super.genAsm();
         Register toReg = Register.K0;
         Register register = Register.K0;
+        assert toType == IntType.INT8;
         loadValueToReg(fromValue, register);
-        int imme = toType == IntType.INT8 ? 0xff : 0x1;
-        new AluAsm(AluAsm.aluOp.AND, toReg, register, imme); // todo
+        // int imme = toType == IntType.INT8 ? 0xff : 0x1;
+        // new AluAsm(AluAsm.aluOp.AND, toReg, register, imme);
         int offset = MipsManager.getInstance().pushAndRetStackFrame(4);
         MipsManager.getInstance().addValueToStack(this, offset);
         new MemoryAsm(MemoryAsm.memOp.SW, toReg, offset, Register.SP);

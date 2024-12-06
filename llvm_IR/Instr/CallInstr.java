@@ -58,8 +58,8 @@ public class CallInstr extends Instr {
         int newStackOffset = curOffset-8;
         Register tmpReg = Register.K0;
         for (int i = 0; i < rParams.size(); ++i) {
-            int offset = MipsManager.getInstance().getOffsetOfValue(rParams.get(i));
-            new MemoryAsm(MemoryAsm.memOp.LW, tmpReg, offset, Register.SP); // 将参数的值加载到$k0
+            // 将参数的值加载到$k0
+            loadValueToReg(rParams.get(i), tmpReg);
             new MemoryAsm(MemoryAsm.memOp.SW, tmpReg, newStackOffset - 4*(i+1), Register.SP);
         }
         // 栈指针更新为子函数栈的起始位置

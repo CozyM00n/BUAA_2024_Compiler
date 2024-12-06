@@ -48,16 +48,16 @@ public class ReturnInstr extends Instr {
         return "ret " + retValue.getLlvmType() + " " + retValue.getName();
     }
 
-    public void loadValueToReg(Value value, Register register) {
-        if (value instanceof Constant) {
-            new LiAsm(register, ((Constant) value).getValue());
-        } else {
-            // 从内存中将值加载到寄存器
-            Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
-            assert offset != null;
-            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
-        }
-    }
+//    public void loadValueToReg(Value value, Register register) {
+//        if (value instanceof Constant) {
+//            new LiAsm(register, ((Constant) value).getValue());
+//        } else {
+//            // 从内存中将值加载到寄存器
+//            Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
+//            assert offset != null;
+//            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
+//        }
+//    }
 
     @Override
     public void genAsm() {

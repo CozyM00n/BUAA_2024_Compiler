@@ -25,7 +25,7 @@ public class Word extends DataAsm {
                     .collect(Collectors.joining(", "));
         } else { // 未初始化的都默认是0
             if (initInfo.getLlvmType() instanceof ArrayType) {
-                str = ((ArrayType) initInfo.getLlvmType()).getLength() + ": 0";
+                str = "0:" + ((ArrayType) initInfo.getLlvmType()).getLength();
             } else {
                 str = "0";
             }
