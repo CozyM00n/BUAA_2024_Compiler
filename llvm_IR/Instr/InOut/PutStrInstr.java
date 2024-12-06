@@ -1,5 +1,10 @@
 package llvm_IR.Instr.InOut;
 
+import BackEnd.Mips.ASM.Comment;
+import BackEnd.Mips.ASM.LiAsm;
+import BackEnd.Mips.ASM.laAsm;
+import BackEnd.Mips.ASM.syscallAsm;
+import BackEnd.Mips.Register;
 import llvm_IR.Function;
 import llvm_IR.IRManager;
 import llvm_IR.Instr.CallInstr;
@@ -28,5 +33,14 @@ public class PutStrInstr extends CallInstr {
                 pointerType.getReferencedType() + ", " +
                 pointerType + " " + stringLiteral.getName() +
                 ", i64 0, i64 0))";
+    }
+
+    @Override
+    public void genAsm() {
+        // name = @str+序号
+        new Comment(this.toString());
+        new laAsm(Register.A0, stringLiteral.getName().substring(1));
+        new LiAsm(Register.V0, 4);
+        new syscallAsm();
     }
 }

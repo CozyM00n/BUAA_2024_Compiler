@@ -1,5 +1,6 @@
 package llvm_IR.Instr;
 
+import BackEnd.Mips.MipsManager;
 import Enums.InstrType;
 import llvm_IR.llvm_Types.LLVMType;
 import llvm_IR.llvm_Values.Value;
@@ -29,5 +30,12 @@ public class ZextInstr extends Instr {
         return name + " = zext "
                 + fromValue.getLlvmType() + " " + fromValue.getName()
                 + " to " + toType;
+    }
+
+    @Override
+    public void genAsm() {
+        super.genAsm();
+        Integer offset = MipsManager.getInstance().getOffsetOfValue(fromValue);
+        MipsManager.getInstance().addValueToStack(this, offset);
     }
 }

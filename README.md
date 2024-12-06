@@ -401,7 +401,7 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 
 ### 关于类型转换
 
-##### 返回值设置
+##### Value的返回值设置
 
 `Char`返回`i8`
 
@@ -431,6 +431,58 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 转义可能出现在`StringConst`和`Char`中。
 
 对于`StringConst`，其字符串的内容在**词法分析**封装为`Node`的时候就将`\`和其后共两个字符替换为**对应的转义字符**。只需在`InitInfo`和`StringLiteral`处的`toString`方法将其替换为llvm所需的输出即可。
+
+## 目标代码（Mips）生成
+
+### Instr指令的翻译
+
+#### `allocaInstr`
+
+```assembly
+# %v0 = alloca i32 这条指令实际上是返回一个指针，由于指针的值必须是一个地址
+# 所以要先分配一个内存(sp-4)，让这个指针变量的值等于新分配变量x的地址
+# 关心的是v0这个地址，它保存在地址为sp-8的地方
+addi $k0 $sp -4 # x的值存储在地址为sp-4的地方
+sw $k0 -8($sp) # x的地址(sp-4) == v0的值，存储在sp-8的地方，并在MM中有<alloca_for_v0, -8>的记录
+```
+
+llvm格式：`%pointer = alloca i32`
+
+1. 为新分配的变量分配内存（push sizeof type）
+2. 获得这块内存的首地址，将其存在$k0
+3. 为指针变量本身（v0）分配内存（push 4）
+4. 将$k0的值存入，并在MipsManager中加入记录。
+
+#### `storeInstr`
+
+```assembly
+# store i32 3, i32* %v0
+lw $k1 -8($sp) # v0的地址加载到k1寄存器
+li $k0 3
+sw $k0 0($k1) # 把$k0中的值存到k1寄存器中的地址上
+```
+
+llvm格式：`store %from, %to`，注意to是指针（alloca，GlobalVar等）
+
+1. 获取from的值，存到`$k0`寄存器中
+2. 获取目标存入地址，将to这个指针的值存入`$k1`寄存器中
+3. 生成sw指令，将`$k0`的值存储到`$k1`上的地址
+
+#### `loadInstr`
+
+```assembly
+# %v3 = load i32, i32* %v0 # 把v0这个地址上存的值赋给v3
+lw $k0 -8($sp) #k0存储v0的地址
+lw $k0 0($k0) # 根据v0的地址:0($k0) 访存得到v0的值，再存入k0
+sw $k0 -20($sp)
+# load 的返回值是v3变量，是一个i32类型
+# 将k0的值(load得到的值)存回v3的地址，使得内存中v3的地址上的那块值真的变了
+# 为v3在内存中开辟一个4Bytes空间(vsp-20),并将其值(k0)存入
+```
+
+## todo
+
+### ==关于符号位==
 
 ### 附录
 
@@ -474,3 +526,42 @@ parser新增对应parse方法
 更改可能改变的**First集**，更改相关的if判断
 
 #### 测试
+
+```assembly
+main:
+b0:
+# int x;
+# %v0 = alloca i32 这条指令实际上是返回一个指针，由于指针的值必须是一个地址
+# 所以要先分配一个内存(sp-4)，让这个指针变量的值等于新分配变量x的地址
+# 关心的是v0这个地址，它保存在地址为sp-8的地方
+addi $k0 $sp -4 # x的值存储在地址为sp-4的地方
+sw $k0 -8($sp) # x的地址(sp-4) == v0的值 存储在sp-8的地方，并在MM中有<alloca_for_v0, -8>的记录
+
+# store i32 3, i32* %v0
+lw $k1 -8($sp) # v0的地址加载到k1寄存器
+li $k0 3
+sw $k0 0($k1) # 把$k0中的值存到k1寄存器中的地址上
+
+# %v2 = alloca i32 # v2 == y
+addi $k0 $sp -12 # v2的值存在sp-12这个地址上
+sw $k0 -16($sp) # v2的地址存在sp-16这个地址上
+
+# %v3 = load i32, i32* %v0 # 把v0这个地址上存的值赋给v3
+lw $k0 -8($sp) #k0存储v0的地址
+lw $k0 0($k0) # 根据v0的地址:0($k0) 访存得到v0的值，再存入k0
+sw $k0 -20($sp)
+# load 的返回值是v3变量，是一个i32类型
+# 将k0的值(load得到的值)存回v3的地址，使得内存中v3的地址上的那块值真的变了
+# 为v3在内存中开辟一个4Bytes空间(vsp-20),并将其值(k0)存入
+
+# store i32 %v3, i32* %v2
+lw $k1 -16($sp)
+lw $k0 -20($sp)
+sw $k0 0($k1)
+
+# ret i32 0
+li $v0 0
+jr $ra
+end:
+```
+

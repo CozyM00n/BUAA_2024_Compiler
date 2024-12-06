@@ -82,7 +82,7 @@ public class FuncDef extends Node {
             case RETURN_VOID: retType = VoidType.VOID; break;
             default: retType = null; break;
         }
-        Function function = new Function("@" + funcSymbol.getSymbolName(), retType);
+        Function function = new Function("@f_" + funcSymbol.getSymbolName(), retType);
         funcSymbol.setLlvmValue(function);
     }
 

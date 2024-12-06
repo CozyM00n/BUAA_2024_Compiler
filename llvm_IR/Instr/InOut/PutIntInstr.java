@@ -1,5 +1,11 @@
 package llvm_IR.Instr.InOut;
 
+import BackEnd.Mips.ASM.Comment;
+import BackEnd.Mips.ASM.LiAsm;
+import BackEnd.Mips.ASM.MemoryAsm;
+import BackEnd.Mips.ASM.syscallAsm;
+import BackEnd.Mips.MipsManager;
+import BackEnd.Mips.Register;
 import llvm_IR.Function;
 import llvm_IR.IRManager;
 import llvm_IR.Instr.CallInstr;
@@ -31,6 +37,16 @@ public class PutIntInstr extends CallInstr {
 
     public PutIntInstr(Value intValue) {
         super("%putint", putIntFunc, new ArrayList<>());
+        this.intValue = intValue;
         rParams.add(intValue);
+    }
+
+    @Override
+    public void genAsm() {
+        new Comment(this.toString());
+        // 将整数加载到$a0寄存器
+        loadValueToReg(intValue, Register.A0);
+        new LiAsm(Register.A0, 1);
+        new syscallAsm();
     }
 }

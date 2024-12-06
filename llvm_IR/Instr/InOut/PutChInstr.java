@@ -1,5 +1,9 @@
 package llvm_IR.Instr.InOut;
 
+import BackEnd.Mips.ASM.Comment;
+import BackEnd.Mips.ASM.LiAsm;
+import BackEnd.Mips.ASM.syscallAsm;
+import BackEnd.Mips.Register;
 import llvm_IR.Function;
 import llvm_IR.IRManager;
 import llvm_IR.Instr.CallInstr;
@@ -14,6 +18,7 @@ import java.util.ArrayList;
 public class PutChInstr extends CallInstr {
     // call void @putch(i32 %3)
 
+    private Value intValue;
     private static final Function putChFunc = new Function("@putch", VoidType.VOID);
 
     public static PutChInstr checkAndGenPutCh(Value chValue) {
@@ -29,6 +34,15 @@ public class PutChInstr extends CallInstr {
 
     public PutChInstr(Value intValue) {
         super("%putch", putChFunc, new ArrayList<>());
+        this.intValue = intValue;
         rParams.add(intValue);
+    }
+
+    @Override
+    public void genAsm() {
+        new Comment(this.toString());
+        loadValueToReg(intValue, Register.A0);
+        new LiAsm(Register.A0, 11);
+        new syscallAsm();
     }
 }

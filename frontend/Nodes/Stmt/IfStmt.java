@@ -26,26 +26,21 @@ public class IfStmt extends Stmt{
             ((CondExp) children.get(2)).genConditionIR(trueBlock, falseBlock);
             // 解析trueBlock内容,解析前为trueBlock分配名字
             IRManager.getInstance().addAndSetCurBlock(trueBlock);
-            // IRManager.getInstance().resetBlockName(trueBlock);
             children.get(4).generateIR();
             new JumpInstr(followBlock);
             // 解析falseBlock内容
             IRManager.getInstance().addAndSetCurBlock(falseBlock);
-            // IRManager.getInstance().resetBlockName(falseBlock);
             children.get(6).generateIR();
             new JumpInstr(followBlock);
             IRManager.getInstance().addAndSetCurBlock(followBlock);
-            // IRManager.getInstance().resetBlockName(followBlock);
         }
         else {
             ((CondExp) children.get(2)).genConditionIR(trueBlock, followBlock);
             // 解析trueBlock内容
             IRManager.getInstance().addAndSetCurBlock(trueBlock);
-            // IRManager.getInstance().resetBlockName(trueBlock);
             children.get(4).generateIR();
             new JumpInstr(followBlock);
             IRManager.getInstance().addAndSetCurBlock(followBlock);
-            // IRManager.getInstance().resetBlockName(followBlock);
         }
         return null;
     }

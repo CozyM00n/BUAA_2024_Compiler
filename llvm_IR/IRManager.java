@@ -44,7 +44,7 @@ public class IRManager {
     }
 
     /**block**/
-    public void addBlock(BasicBlock block) {
+    public void addBlock(BasicBlock block) { // 同时设置parent
         curFunc.addBlock(block);
     }
 
@@ -53,7 +53,7 @@ public class IRManager {
         addBlock(block);
     }
 
-    public void addInstr(Instr instr) {
+    public void addInstr(Instr instr) { // 同时设置parent
         curBlock.addInstr(instr);
     }
 

@@ -1,5 +1,6 @@
 package llvm_IR.Instr;
 
+import BackEnd.Mips.ASM.JumpAsm;
 import Enums.InstrType;
 import llvm_IR.llvm_Types.VoidType;
 import llvm_IR.BasicBlock;
@@ -20,5 +21,11 @@ public class JumpInstr extends Instr {
     @Override
     public String toString() {
         return "br label %" + toBlock.getName();
+    }
+
+    @Override
+    public void genAsm() {
+        super.genAsm();
+        new JumpAsm(JumpAsm.JumpOp.J, toBlock.getName());
     }
 }

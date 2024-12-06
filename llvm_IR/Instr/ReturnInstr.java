@@ -1,7 +1,11 @@
 package llvm_IR.Instr;
 
+import BackEnd.Mips.ASM.JumpAsm;
+import BackEnd.Mips.ASM.LiAsm;
+import BackEnd.Mips.ASM.MemoryAsm;
+import BackEnd.Mips.MipsManager;
+import BackEnd.Mips.Register;
 import Enums.InstrType;
-import Enums.ReturnType;
 import llvm_IR.IRManager;
 import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.LLVMType;
@@ -27,6 +31,7 @@ public class ReturnInstr extends Instr {
         }
         return new ReturnInstr(retValue);
     }
+
     public ReturnInstr(Value retValue) { // retValue在返回void时为null
         super("return", VoidType.VOID, InstrType.RETURN_INSTR);
         this.retValue = retValue;
@@ -41,5 +46,27 @@ public class ReturnInstr extends Instr {
     public String toString() {
         if (retValue == null) return "ret void";
         return "ret " + retValue.getLlvmType() + " " + retValue.getName();
+    }
+
+    public void loadValueToReg(Value value, Register register) {
+        if (value instanceof Constant) {
+            new LiAsm(register, ((Constant) value).getValue());
+        } else {
+            // 从内存中将值加载到寄存器
+            Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
+            assert offset != null;
+            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
+        }
+    }
+
+    @Override
+    public void genAsm() {
+        super.genAsm();
+        // 将返回值存储到v0寄存器
+        if (retValue != null) {
+            loadValueToReg(retValue, Register.V0);
+        }
+        // jr  $ra
+        new JumpAsm(JumpAsm.JumpOp.JR, Register.RA);
     }
 }

@@ -1,5 +1,7 @@
 package llvm_IR;
 
+import BackEnd.Mips.ASM.LabelAsm;
+import BackEnd.Mips.MipsManager;
 import llvm_IR.llvm_Types.LLVMType;
 import llvm_IR.llvm_Types.OtherType;
 import llvm_IR.llvm_Values.Param;
@@ -23,6 +25,7 @@ public class Function extends User {
     public void addBlock(BasicBlock block) {
         if (blocks.isEmpty()) block.setFirstBlock(true);
         blocks.add(block);
+        block.setParentFunc(this);
     }
 
     public void addParam(Param param) {
@@ -55,5 +58,19 @@ public class Function extends User {
                 .collect(Collectors.joining("\n"));
         sb.append(blockStr).append("\n}\n");
         return sb.toString();
+    }
+
+    @Override
+    public void genAsm() {
+        // name=@f_+函数名/@main/@putchar
+        new LabelAsm(name.substring(1));
+        MipsManager.getInstance().enterFunction();
+        for (int i = 0; i < params.size(); i++) {
+            int offset = MipsManager.getInstance().pushAndRetStackFrame(4);
+            MipsManager.getInstance().addValueToStack(params.get(i), offset);
+        }
+        for (BasicBlock block : blocks) {
+            block.genAsm();
+        }
     }
 }

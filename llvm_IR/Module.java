@@ -1,5 +1,7 @@
 package llvm_IR;
 
+import BackEnd.Mips.ASM.JumpAsm;
+import BackEnd.Mips.ASM.LabelAsm;
 import llvm_IR.llvm_Types.OtherType;
 import llvm_IR.llvm_Values.GlobalVar;
 import llvm_IR.llvm_Values.StringLiteral;
@@ -70,7 +72,10 @@ public class Module extends Value {
             gv.genAsm();
         for (StringLiteral str : stringLiteralList)
             str.genAsm();
+        new JumpAsm(JumpAsm.JumpOp.JAL, "main");
+        new JumpAsm(JumpAsm.JumpOp.J, "end");
         for (Function func : funcList)
             func.genAsm();
+        new LabelAsm("end");
     }
 }
