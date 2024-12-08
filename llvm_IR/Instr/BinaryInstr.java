@@ -57,32 +57,12 @@ public class BinaryInstr extends Instr {
                 + operands.get(0).toTypeAndName() + ", " + operands.get(1).getName();
     }
 
-    public void value2Reg(Value value, Register register) {
-
-    }
-
     @Override
     public void genAsm() {
         super.genAsm();
         Register register1 = Register.K0;
         Register register2 = Register.K1;
         Register toReg = Register.K0;
-//        if (op1 instanceof Constant) {
-//            new LiAsm(register1, ((Constant) op1).getValue());
-//        } else {
-//            // 从内存中load得到op1的值并存入reg1
-//            Integer offset = MipsManager.getInstance().getOffsetOfValue(op1);
-//            assert offset != null;
-//            new MemoryAsm(MemoryAsm.memOp.LW, register1, offset, Register.SP);
-//        }
-//        if (op2 instanceof Constant) {
-//            new LiAsm(register2, ((Constant) op2).getValue());
-//        } else {
-//            // 从内存中load得到op2的值并存入reg2
-//            Integer offset = MipsManager.getInstance().getOffsetOfValue(op2);
-//            assert offset != null;
-//            new MemoryAsm(MemoryAsm.memOp.LW, register2, offset, Register.SP);
-//        }
         loadValueToReg(op1, register1);
         loadValueToReg(op2, register2);
         switch (binOp) {

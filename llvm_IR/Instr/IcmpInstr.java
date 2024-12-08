@@ -16,7 +16,6 @@ public class IcmpInstr extends Instr {
     public enum cmpOp {
         EQ, NE,
         SGT, SGE, SLT, SLE,
-        //UGT, UGE, ULT, ULE,
     }
     private Value op1;
     private Value op2;
@@ -24,8 +23,7 @@ public class IcmpInstr extends Instr {
 
     public IcmpInstr(String name, cmpOp cmpop, Value op1, Value op2) {
         super(name, IntType.INT1, InstrType.ICMP_INSTR);
-        assert op1.getLlvmType() == IntType.INT32;
-        assert op2.getLlvmType() == IntType.INT32;
+        assert op1.getLlvmType() == op2.getLlvmType();
         this.cmpop = cmpop;
         this.op1 = op1;
         this.op2 = op2;
@@ -46,17 +44,6 @@ public class IcmpInstr extends Instr {
                 + operands.get(0).getLlvmType() + " " + operands.get(0).getName()
                 + ", " + operands.get(1).getName();
     }
-
-//    public void loadValueToReg(Value value, Register register) {
-//        if (value instanceof Constant) {
-//            new LiAsm(register, ((Constant) value).getValue());
-//        } else {
-//            // 从内存中将值加载到寄存器
-//            Integer offset = MipsManager.getInstance().getOffsetOfValue(value);
-//            assert offset != null;
-//            new MemoryAsm(MemoryAsm.memOp.LW, register, offset, Register.SP);
-//        }
-//    }
 
     @Override
     public void genAsm() {

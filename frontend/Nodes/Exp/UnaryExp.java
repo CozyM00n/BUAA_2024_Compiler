@@ -110,7 +110,7 @@ public class UnaryExp extends Node {
                 return op2;
             } else if (uOp.getTokenType() == TokenType.MINU) {
                 return BinaryInstr.checkAndGenBinInstr(IntType.INT32, BinaryInstr.op.SUB, new Constant(0, IntType.INT32), op2);
-            } else { // NOT
+            } else { // NOT 唯一有可能出现icmp里i8进行比较的情况
                 return new IcmpInstr(IRManager.getInstance().genVRName(),
                         IcmpInstr.cmpOp.EQ, new Constant(0, op2.getLlvmType()), op2);
             }

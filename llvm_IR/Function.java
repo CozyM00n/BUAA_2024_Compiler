@@ -67,6 +67,7 @@ public class Function extends User {
         MipsManager.getInstance().enterFunction();
         for (int i = 0; i < params.size(); i++) {
             int offset = MipsManager.getInstance().pushAndRetStackFrame(4);
+            // 映射到的这块内存是caller已经复制好参数的那块内存
             MipsManager.getInstance().addValueToStack(params.get(i), offset);
         }
         for (BasicBlock block : blocks) {

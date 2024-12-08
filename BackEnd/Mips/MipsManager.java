@@ -67,13 +67,6 @@ public class MipsManager {
                 collect(Collectors.joining("\n\t")));
         sb.append("\n");
         sb.append(".text\n");
-//        for (Asm asm : textSeg) {
-//            if (asm instanceof LabelAsm) {
-//                sb.append(asm);
-//            } else {
-//                sb.append(asm+"\n");
-//            }
-//        }
         sb.append(textSeg.stream().map(Asm::toString)
                 .collect(Collectors.joining("\n")));
         return sb.toString();
@@ -82,6 +75,7 @@ public class MipsManager {
     /** changeName ***/
     public String getStringLiteralName(String s) {
         // from llvm name to mips label
-        return s.substring(2).replace(".", "_");
+        return s.substring(2).replace(".", "_")
+                .replace("str", "_s_");
     }
 }

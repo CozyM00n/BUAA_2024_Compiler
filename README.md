@@ -441,17 +441,16 @@ public boolean addSymbol(Symbol symbol) { // SymbolTable.java
 ```assembly
 # %v0 = alloca i32 这条指令实际上是返回一个指针，由于指针的值必须是一个地址
 # 所以要先分配一个内存(sp-4)，让这个指针变量的值等于新分配变量x的地址
-# 关心的是v0这个地址，它保存在地址为sp-8的地方
 addi $k0 $sp -4 # x的值存储在地址为sp-4的地方
-sw $k0 -8($sp) # x的地址(sp-4) == v0的值，存储在sp-8的地方，并在MM中有<alloca_for_v0, -8>的记录
+sw $k0 -8($sp) # 这条指令的返回值是v0, 也就是变量x的地址(sp-4)，它存储在sp-8的地方，并在MM中有<alloca_for_v0, -8>的记录
 ```
 
 llvm格式：`%pointer = alloca i32`
 
 1. 为新分配的变量分配内存（push sizeof type）
-2. 获得这块内存的首地址，将其存在$k0
-3. 为指针变量本身（v0）分配内存（push 4）
-4. 将$k0的值存入，并在MipsManager中加入记录。
+2. 获得这块内存的首地址
+3. 为指针变量本身分配内存（push stack frame with size 4）
+4. 将内存首地址存入，并在MipsManager中加入记录。
 
 #### `storeInstr`
 
@@ -479,6 +478,21 @@ sw $k0 -20($sp)
 # 将k0的值(load得到的值)存回v3的地址，使得内存中v3的地址上的那块值真的变了
 # 为v3在内存中开辟一个4Bytes空间(vsp-20),并将其值(k0)存入
 ```
+
+#### 函数调用
+
+1. 复制sp和ra的值到栈中
+2. 从子函数的栈底开始，将形参的值复制到子函数的栈帧中
+3. 更新sp至子函数栈底，jal
+4. 还原ra和sp的值
+5. 将v0中保存的返回值复制到栈中
+
+#### Func
+
+#### 犯过的错
+
+- data段为.word和.asciiz定义的变量名重复了
+- 
 
 ## todo
 

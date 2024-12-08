@@ -25,6 +25,6 @@ public class CmpAsm extends Asm {
         return op.toString().toLowerCase() + " "
                 + rd + ", "
                 + rs + ", "
-                + rt + ", ";
+                + rt;
     }
 }
