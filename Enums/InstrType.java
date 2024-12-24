@@ -13,6 +13,5 @@ public enum InstrType {
     GEP_INSTR,
     BR_INSTR,
     JUMP_INSTR,
-
-
+    PHI_INSTR,
 }

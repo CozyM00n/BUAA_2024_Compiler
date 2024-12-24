@@ -8,24 +8,19 @@ import llvm_IR.llvm_Values.Param;
 import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 public class Function extends User {
     private LLVMType retType;
     private ArrayList<Param> params;
-    private ArrayList<BasicBlock> blocks;
+    private LinkedList<BasicBlock> blocks;
 
     public Function(String name, LLVMType retType) {
         super(name, OtherType.FUNCTION);
         this.retType = retType;
         this.params = new ArrayList<>();
-        this.blocks = new ArrayList<>();
-    }
-
-    public void addBlock(BasicBlock block) {
-        if (blocks.isEmpty()) block.setFirstBlock(true);
-        blocks.add(block);
-        block.setParentFunc(this);
+        this.blocks = new LinkedList<>();
     }
 
     public void addParam(Param param) {
@@ -43,6 +38,17 @@ public class Function extends User {
     public Value getFuncLastInstr() {
         if (blocks.isEmpty()) return null;
         return blocks.get(blocks.size() - 1).getBBLastInstr();
+    }
+
+    /** Block **/
+    public void addBlock(BasicBlock block) {
+        if (blocks.isEmpty()) block.setFirstBlock(true);
+        blocks.add(block);
+        block.setParentFunc(this);
+    }
+
+    public LinkedList<BasicBlock> getBlocks() {
+        return blocks;
     }
 
     @Override

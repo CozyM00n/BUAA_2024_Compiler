@@ -46,6 +46,10 @@ public class Module extends Value {
         funcList.add(func);
     }
 
+    public ArrayList<Function> getFuncList() {
+        return funcList;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -25,7 +25,9 @@ public class Printer {
             case "LA": outputFile = "lexer.txt"; break;
             case "SA": outputFile = "parser.txt"; break;
             case "ST": outputFile = "symbol.txt"; break;
-            case "CG": outputFile = "llvm_ir.txt"; break;
+            case "CG":
+            case "CGO":
+                outputFile = "llvm_ir.txt"; break;
         }
         errorList = new HashMap<>();
         outFileList = new ArrayList<>();
@@ -119,13 +121,13 @@ public class Printer {
     }
 
     public static void printLLVM(Module module) throws IOException {
-        if (enable && hwTask.equals("CG")) {
+        if (enable && hwTask.contains("CG")) {
             outputWriter.write(module.toString());
         }
     }
 
     public static void printMips() throws IOException {
-        if (enable && hwTask.equals("CG") && genMips) {
+        if (enable && hwTask.contains("CG") && genMips) {
             try (FileWriter mipsWriter = new FileWriter("mips.txt")) {
                 // 块结束时会自动关闭 FileWriter
                 mipsWriter.write(MipsManager.getInstance().genMipsCode());

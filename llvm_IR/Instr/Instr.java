@@ -21,7 +21,9 @@ public class Instr extends User {
         super(name, llvmType);
         this.instrType = instrType;
         this.parentBlock = null;
-        IRManager.getInstance().addInstr(this);
+        if (IRManager.AUTO_ADD_INSTR) {
+            IRManager.getInstance().addInstr(this);
+        }
     }
 
     public void setParentBlock(BasicBlock parentBlock) {

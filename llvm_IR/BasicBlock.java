@@ -13,6 +13,7 @@ public class BasicBlock extends User {
     private LinkedList<Instr> instrs;
     private boolean isFirstBlock;
     private Function parentFunc;
+    private boolean isRemoved;
 
     public BasicBlock(String name) {
         super(name, OtherType.BASIC_BLOCK);
@@ -21,18 +22,24 @@ public class BasicBlock extends User {
         this.parentFunc = null;
     }
 
+    /** Instr **/
     public void addInstr(Instr instr) {
         instrs.add(instr);
         instr.setParentBlock(this);
     }
 
-    public void setFirstBlock(boolean firstBlock) {
-        isFirstBlock = firstBlock;
-    }
-
-    public Value getBBLastInstr() {
+    public Instr getBBLastInstr() {
         if (instrs.isEmpty()) return null;
         return instrs.getLast();
+    }
+
+    public LinkedList<Instr> getInstrs() {
+        return instrs;
+    }
+
+    /** Block **/
+    public void setFirstBlock(boolean firstBlock) {
+        isFirstBlock = firstBlock;
     }
 
     /** function***/
@@ -42,6 +49,14 @@ public class BasicBlock extends User {
 
     public Function getParentFunc() {
         return parentFunc;
+    }
+
+
+    public void setRemoved(boolean removed) {
+        isRemoved = removed;
+    }
+    public boolean isRemoved() {
+        return isRemoved;
     }
 
     @Override

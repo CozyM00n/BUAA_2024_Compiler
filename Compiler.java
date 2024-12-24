@@ -1,3 +1,4 @@
+import Optimizer.Optimizer;
 import frontend.Lexer.Lexer;
 import frontend.Nodes.Node;
 import frontend.Parser.Parser;
@@ -10,8 +11,7 @@ import java.io.PushbackInputStream;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
-
-        String task = "CG";
+        String task = "CGO";
         Printer.initPrinter(task);
         Printer.genMips = true;
 
@@ -49,6 +49,24 @@ public class Compiler {
             } else { // 只为正确的testFile生成llvm
                 compUnit.generateIR();
                 Module module = Module.getInstance();
+                Printer.printLLVM(module);
+                module.genAsm();
+                Printer.printMips();
+            }
+        } else if (task.equals("CGO")) {
+            FileInputStream fin = new FileInputStream("testfile.txt");
+            PushbackInputStream inputStream = new PushbackInputStream(fin, 16);
+            Lexer lexer = new Lexer(inputStream);
+            Parser parser = new Parser(lexer.getTokenStream());
+            Node compUnit = parser.parseCompUnit();
+            compUnit.checkError();
+            if (Printer.hasError()) {
+                Printer.printErrors();
+                System.out.println("task = CG : Found Syntax Error!");
+            } else { // 只为正确的testFile生成llvm
+                compUnit.generateIR();
+                Module module = Module.getInstance();
+                //Optimizer.optimize(module);
                 Printer.printLLVM(module);
                 module.genAsm();
                 Printer.printMips();

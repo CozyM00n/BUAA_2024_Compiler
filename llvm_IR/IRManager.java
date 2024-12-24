@@ -13,6 +13,7 @@ public class IRManager {
     private int strLiteralNum;
     private Stack<ForLoop> forLoops;
     private int BasicBlockNum;
+    public static boolean AUTO_ADD_INSTR = true;
 
     private IRManager() {
         this.localVarMap = new HashMap<>();
@@ -53,13 +54,10 @@ public class IRManager {
         addBlock(block);
     }
 
+    /** Instr**/
     public void addInstr(Instr instr) { // 同时设置parent
         curBlock.addInstr(instr);
     }
-
-//    public void resetBlockName(BasicBlock block) {
-//        block.setBlockName(genBlockName());
-//    }
 
     /*** add item for Module ***/
     public void addStringLiteral(StringLiteral stringLiteral) {
