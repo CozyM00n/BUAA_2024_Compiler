@@ -2,12 +2,10 @@ package frontend.Nodes;
 
 import Enums.SyntaxVarType;
 import frontend.Symbol.SymbolManager;
-import llvm_IR.IRManager;
 import llvm_IR.llvm_Values.Value;
 
 import java.util.ArrayList;
 
-import static frontend.Symbol.SymbolManager.curTableId;
 // Block → '{' { BlockItem } '}'
 // BlockItem → ConstDecl | VarDecl | Stmt
 
@@ -21,16 +19,17 @@ public class Block extends Node {
 
     @Override
     public void checkError() {
-        this.symbolTableId = curTableId;
+        // 此前已经完成了pushBlock的工作
+        this.symbolTableId = SymbolManager.getCurTableId();
         super.checkError();
     }
 
     @Override
     public Value generateIR() {
-        curTableId = symbolTableId;
+        SymbolManager.setCurTableId(symbolTableId);
         super.generateIR();
         // 退出block 更新curTableId
-        curTableId = SymbolManager.getInstance().getFatherTableId(curTableId);
+        SymbolManager.setCurTableId(SymbolManager.getInstance().getFatherTableId(symbolTableId));
         return null;
     }
 }

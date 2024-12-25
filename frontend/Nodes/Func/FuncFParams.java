@@ -21,22 +21,4 @@ public class FuncFParams extends Node {
         }
         return typeList;
     }
-
-//    @Override
-//    public Value generateIR() {
-//        for (Node child: children) {
-//            if (child instanceof FuncFParam) {
-//                child.generateIR();
-//            }
-//        }
-//        return null;
-//    }
-
-//    public void setParamForSymbol() {
-//        for (Node child: children) {
-//            if (child instanceof FuncFParam) {
-//                ((FuncFParam) child).setParamLLVM();
-//            }
-//        }
-//    }
 }

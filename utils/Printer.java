@@ -2,8 +2,10 @@ package utils;
 
 import BackEnd.Mips.MipsManager;
 import frontend.Lexer.Token;
+import frontend.Symbol.ConstSymbol;
 import frontend.Symbol.SymbolManager;
 import frontend.Symbol.SymbolTable;
+import frontend.Symbol.VarSymbol;
 import llvm_IR.Module;
 
 import java.io.FileWriter;
@@ -117,6 +119,17 @@ public class Printer {
             } else {
                 printErrors();
             }
+        }
+    }
+
+    public static void debugSymbol() {
+        HashMap<Integer, SymbolTable> symbolMap = SymbolManager.getInstance().getSymbolMap();
+        List<Integer> sortedKeys = new ArrayList<>(symbolMap.keySet());
+        Collections.sort(sortedKeys);
+        ConstSymbol.isDebug = true;
+        VarSymbol.isDebug = true;
+        for (Integer key : sortedKeys) {
+            System.out.print(symbolMap.get(key).toString());
         }
     }
 

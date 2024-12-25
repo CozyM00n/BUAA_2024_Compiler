@@ -34,9 +34,9 @@ public class MainFuncDef extends Node {
         SymbolManager.getInstance().setGlobal(false);
         this.funcSymbol = createSymbol();
         SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
-        SymbolManager.getInstance().pushBlock();
+        SymbolManager.getInstance().pushTable();
         super.checkError(); // 就是Block的checkError
-        SymbolManager.getInstance().popBlock();
+        SymbolManager.getInstance().popTable();
         // g  考虑函数末尾是否存在return语句  函数结尾的’}’所在行号
         Node BlockNode = children.get(children.size() - 1);
         int BlockChildNum = BlockNode.getChildren().size();

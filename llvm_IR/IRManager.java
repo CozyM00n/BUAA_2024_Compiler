@@ -9,9 +9,9 @@ import java.util.Stack;
 public class IRManager {
     private Function curFunc;
     private BasicBlock curBlock;
-    private HashMap<Function, Integer> localVarMap;
+    private final HashMap<Function, Integer> localVarMap;
     private int strLiteralNum;
-    private Stack<ForLoop> forLoops;
+    private final Stack<ForLoop> forLoops;
     private int BasicBlockNum;
     public static boolean AUTO_ADD_INSTR = true;
 
@@ -88,8 +88,6 @@ public class IRManager {
     }
 
     public String genBlockName() {
-//        int num = localVarMap.get(curFunc);
-//        localVarMap.put(curFunc, num + 1);
         return "L" + (++BasicBlockNum);
     }
 

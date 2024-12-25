@@ -45,7 +45,7 @@ public class Parser {
             else if (isBtype()) { // varDecl
                 children.add(parseVarDecl());
             }
-            else { System.out.println("Err: parseCompUnit"); break; }
+            else { System.out.println("!!!Error: parseCompUnit"); break; }
         }
         return NodeCreator.createNode(SyntaxVarType.COMP_UNIT, children);
     }
@@ -573,7 +573,8 @@ public class Parser {
         ArrayList<Node> children = new ArrayList<>();
         children.add(NodeCreator.createNode(curToken)); read();
         children.add(NodeCreator.createNode(curToken)); read();
-        if (curToken.getTokenType() == TokenType.IDENFR) { // ForStmt 的 FIRST
+        if (curToken.getTokenType() == TokenType.IDENFR || isBtype()) {
+            //////////// ForStmt 的 FIRST
             children.add(parseForStmt());
         }
         children.add(NodeCreator.createNode(curToken)); read(); // read ';'
@@ -590,11 +591,16 @@ public class Parser {
     }
 
     public Node parseForStmt() {
-        // ForStmt → LVal '=' Exp
+        // ForStmt → LVal '=' Exp | BType VarDef
         ArrayList<Node> children = new ArrayList<>();
-        children.add(parseLValExp());
-        children.add(NodeCreator.createNode(curToken)); read();
-        children.add(parseExp());
+        if (isBtype()) {
+            children.add(NodeCreator.createNode(curToken)); read();  // parseBtype
+            children.add(parseVarDef());
+        } else {
+            children.add(parseLValExp());
+            children.add(NodeCreator.createNode(curToken)); read();
+            children.add(parseExp());
+        }
         return NodeCreator.createNode(SyntaxVarType.FOR_STMT, children);
     }
 

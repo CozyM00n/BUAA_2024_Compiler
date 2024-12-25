@@ -15,8 +15,8 @@ public class BlockStmt extends Stmt{
     @Override
     public void checkError() {
         // 进入block之前会push一个新符号表
-        SymbolManager.getInstance().pushBlock();
+        SymbolManager.getInstance().pushTable();
         super.checkError();
-        SymbolManager.getInstance().popBlock();
+        SymbolManager.getInstance().popTable();
     }
 }

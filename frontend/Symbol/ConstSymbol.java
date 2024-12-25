@@ -10,6 +10,7 @@ public class ConstSymbol extends Symbol {
     private InitInfo initInfo; // 保存
     private LLVMType llvmType;
     private Value llvmValue;
+    public static boolean isDebug = false;
 
     public ConstSymbol (TypeInfo typeInfo, String symbolName) {
         super(symbolName, SymbolType.SYMBOL_CONST, SymbolManager.getInstance().isGlobal());
@@ -63,6 +64,9 @@ public class ConstSymbol extends Symbol {
     /*** 符号表输出 ***/
     @Override
     public String toString() {
+        if (isDebug) {
+            return this.symbolName + " " + typeInfo.toString() + ", id=" + this.symbolId; // for debug
+        }
         return this.symbolName + " " + "Const" + typeInfo.toString();
     }
 }

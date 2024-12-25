@@ -7,10 +7,10 @@ import static frontend.Symbol.Symbol.SYMBOL_ID;
 
 public class SymbolTable {
     static int TABLE_ID = 1; // 每个符号表对应一个唯一id 按照出现顺序递增
-    private int tableId;
-    private HashMap<String, Symbol> symbolMap;
-    private ArrayList<String> symbolNameList; // 记录每个symbol在该表中的出场顺序
-    private int fatherId;
+    private final int tableId;
+    private final HashMap<String, Symbol> symbolMap;
+    private final ArrayList<String> symbolNameList; // 记录每个symbol在该表中的出场顺序
+    private final int fatherId;
 
     public SymbolTable(int fatherId) {
         this.symbolMap = new HashMap<>();

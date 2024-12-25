@@ -36,6 +36,7 @@ public class FuncDef extends Node {
     }
 
     public void setParaInfo() {
+        // 将参数信息存入funcSymbol，以便调用函数时进行checkError检查参数类型是否匹配
         ArrayList<TypeInfo> typeList = new ArrayList<>();
         if (children.get(3) instanceof FuncFParams) {
             typeList.addAll(((FuncFParams) children.get(3)).getFParamsType());
@@ -53,23 +54,23 @@ public class FuncDef extends Node {
             Error error = new Error(children.get(1).getEndLine(), 'b');
             Printer.addError(error);
         }
-        SymbolManager.getInstance().pushBlock();
+        SymbolManager.getInstance().pushTable();
         SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
         for (Node child : children) {
             if (child instanceof Block) {
-                setParaInfo(); // 此时函数参数信息已存入FuncSymbol
+                this.setParaInfo(); // 此时函数参数信息已存入FuncSymbol
             }
             child.checkError(); // 在进入函数体之前将函数参数信息加入FuncSymbol
         }
-        SymbolManager.getInstance().popBlock();
+        SymbolManager.getInstance().popTable();
 
         // g
         Node BlockNode = children.get(children.size() - 1);
         int BlockChildNum = BlockNode.getChildren().size();
-        Node returnStmt = BlockNode.getChildren().get(BlockChildNum - 2); // 倒数第2
+        Node returnStmt = BlockNode.getChildren().get(BlockChildNum - 2); // Block → '{' {   ConstDecl | VarDecl | Stmt } '}'
         if (funcSymbol.getReturnType() != ReturnType.RETURN_VOID &&
                 ! (returnStmt instanceof ReturnStmt)) { // 只查返回值不是void的
-            Error error = new Error(BlockNode.getChildren().get(BlockChildNum - 1).getEndLine(), 'g');
+            Error error = new Error(BlockNode.getChildren().get(BlockChildNum - 1).getEndLine(), 'g'); // }所在行号
             Printer.addError(error);
         }
     }

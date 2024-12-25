@@ -79,7 +79,7 @@ public class VarDef extends Node {
     }
 
     @Override
-    public void checkError() { // b
+    public void checkError() { // b 变量名字重定义
         super.checkError();
         this.varSymbol = createSymbol();
         if (!SymbolManager.getInstance().addSymbol(varSymbol)) {

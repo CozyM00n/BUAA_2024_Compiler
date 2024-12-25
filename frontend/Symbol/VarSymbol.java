@@ -13,6 +13,7 @@ public class VarSymbol extends Symbol{
     private InitInfo initInfo; // 全局变量才有的初始值
     private LLVMType llvmType;
     private Value llvmValue;
+    public static boolean isDebug = false;
     // private Param param;
 
     public VarSymbol(TypeInfo typeInfo, String symbolName) {
@@ -89,6 +90,9 @@ public class VarSymbol extends Symbol{
     /*** 符号表输出 ***/
     @Override
     public String toString() {
-        return this.symbolName + " " + typeInfo.toString() + " id - " + this.symbolId; // for debug
+        if (isDebug) {
+           return this.symbolName + " " + typeInfo.toString() + ", id=" + this.symbolId; // for debug
+        }
+        return this.symbolName + " " + typeInfo.toString();
     }
 }

@@ -5,14 +5,19 @@ import java.util.Stack;
 
 public class SymbolManager {
     private static final SymbolManager MANAGER = new SymbolManager();
-    private Stack<SymbolTable> symbolTableStack;
+    public static SymbolManager getInstance() {
+        return MANAGER;
+    }
+
+    private final Stack<SymbolTable> symbolTableStack;
+    private final HashMap<Integer, SymbolTable> symbolMap;
+    public static int curSymbolId;
+    private static int curTableId = -1; // 全局Block的父亲是-1
+
     private FuncSymbol curFuncSymbol;
     private boolean isGlobal;
     private TypeInfo.typeInfo declaredType;
     private int loopDepth;
-    private HashMap<Integer, SymbolTable> symbolMap;
-    public static int curSymbolId;
-    public static int curTableId = -1; // 全局Block的父亲是-1
 
     private SymbolManager() {
         this.symbolTableStack = new Stack<>();
@@ -20,9 +25,6 @@ public class SymbolManager {
         this.isGlobal = true;
         this.loopDepth = 0;
         this.symbolMap = new HashMap<>();
-    }
-    public static SymbolManager getInstance() {
-        return MANAGER;
     }
 
     /*** symbol ***/
@@ -41,7 +43,7 @@ public class SymbolManager {
     }
 
     public Symbol getSymbolForIR(String name) {
-        // genIR阶段用于LVal 需要满足查表查到的符号id < curSymbolId 否则查表查到的就是还未定义的名为name的符号
+        // genIR阶段用于LVal 需要满足查表查到的符号id <= curSymbolId 否则查表查到的就是还未定义的名为name的符号
         int id = curTableId;
         while (id != -1) {
             SymbolTable table = symbolMap.get(id);
@@ -50,22 +52,15 @@ public class SymbolManager {
             }
             id = table.getFatherId();
         }
-        System.out.println("getSymbolForIR : symbol : " + name + "not found!");
+        System.out.println("getSymbolForIR : symbol :【" + name + "】not found!");
         return null;
     }
 
-    /*** Block ***/
-    public void pushBlock() {
-        // for checkError 建表阶段
-        SymbolTable symbolTable = new SymbolTable(curTableId); // 传入父亲符号表的id
-        curTableId = symbolTable.getTableId();
-        symbolMap.put(curTableId, symbolTable);
-        symbolTableStack.push(symbolTable);
+    public static void setCurSymbolId(int id) {
+        curSymbolId = id;
     }
-
-    public void popBlock() {
-        SymbolTable topTable = symbolTableStack.pop();
-        curTableId = topTable.getFatherId();
+    public static int getCurSymbolId() {
+        return curSymbolId;
     }
 
     /*** loop ***/
@@ -81,26 +76,48 @@ public class SymbolManager {
         return loopDepth;
     }
 
-    /***Symbol Map ***/
+    /*** Symbol Table ***/
+    public void pushTable() {
+        // for checkError 建表阶段,新建一个符号表
+        SymbolTable symbolTable = new SymbolTable(curTableId); // 传入参数是：父亲符号表的id
+        curTableId = symbolTable.getTableId();
+        symbolMap.put(curTableId, symbolTable);
+        symbolTableStack.push(symbolTable);
+    }
+
+    public void popTable() {
+        SymbolTable topTable = symbolTableStack.pop();
+        curTableId = topTable.getFatherId();
+    }
+
+    public static void setCurTableId(int id) {
+        curTableId = id;
+    }
+    public static int getCurTableId() {
+        return curTableId;
+    }
+
     public int getFatherTableId(int id) {
+        // genIR阶段：用于退出当前符号表，设置返回上一级符号表
         return symbolMap.get(id).getFatherId();
     }
 
     public HashMap<Integer, SymbolTable> getSymbolMap() {
+        // for printer 语义分析阶段
         return symbolMap;
     }
 
     /*** variable info***/
-    public boolean isConst(String identName) { // 只能在checkError使用
+    public boolean isConst(String identName) { // 在checkError使用
+        // for error h,不能修改常量的值  LVal '=' xxx
         Symbol symbol = getSymbol(identName);
         return  (symbol instanceof ConstSymbol); // 若为null也返回false
     }
 
     public TypeInfo.typeInfo getDeclaredType() {
-        // 定义变量时记录declare的类型
+        // 语义分析阶段：定义变量时记录declare的类型
         return declaredType;
     }
-
     public void setDeclaredType(TypeInfo.typeInfo declaredType) {
         this.declaredType = declaredType;
     }
@@ -108,7 +125,6 @@ public class SymbolManager {
     public void setGlobal(boolean global) {
         isGlobal = global;
     }
-
     public boolean isGlobal() {
         return isGlobal;
     }
