@@ -67,7 +67,7 @@ public class InitVal extends Node {
     }
     // 仅限全局变量
     // for InitInfo.initValues
-    public ArrayList<Integer> getIntList(int len) {
+    public ArrayList<Integer> getIntList(int len) { // 不足补0，返回长度len的数组
         if (isStringConst()) {
             return getIntListForString(len);
         }
@@ -108,7 +108,7 @@ public class InitVal extends Node {
                 res.add(children.get(i).generateIR());
                 cnt++;
             }
-            if (eleType != IntType.INT32) {
+            if (eleType != IntType.INT32) { // 局部变量int数组不需要初始化
                 while (cnt < len) { // 剩下的也都初始化为0
                     res.add(new Constant(0, eleType));
                     cnt++;

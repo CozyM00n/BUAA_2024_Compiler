@@ -37,6 +37,7 @@ public class MainFuncDef extends Node {
         SymbolManager.getInstance().pushTable();
         super.checkError(); // 就是Block的checkError
         SymbolManager.getInstance().popTable();
+
         // g  考虑函数末尾是否存在return语句  函数结尾的’}’所在行号
         Node BlockNode = children.get(children.size() - 1);
         int BlockChildNum = BlockNode.getChildren().size();
@@ -57,7 +58,7 @@ public class MainFuncDef extends Node {
         // 创建新的Block
         BasicBlock block = new BasicBlock(IRManager.getInstance().genBlockName());
         IRManager.getInstance().addAndSetCurBlock(block);
-        super.generateIR();
+        super.generateIR(); // Block生成中间代码
         return null;
     }
 }

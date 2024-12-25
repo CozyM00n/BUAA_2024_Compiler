@@ -41,7 +41,7 @@ public class LValExp extends Node {
     }
 
     @Override
-    public TypeInfo getTypeInfo() {
+    public TypeInfo getTypeInfo() { // for checkErr
         String name = ((TokenNode)children.get(0)).getTokenValue();
         Symbol symbol = SymbolManager.getInstance().getSymbol(name);
         if (symbol == null) {
@@ -59,6 +59,8 @@ public class LValExp extends Node {
         }
     }
 
+
+    /**llvm**/
     @Override
     public int calculate() {
         String name = ((TokenNode)children.get(0)).getTokenValue();
@@ -147,7 +149,7 @@ public class LValExp extends Node {
         VarSymbol varSymbol = (VarSymbol) SymbolManager.getInstance().getSymbolForIR(name); // 一定是varSymbol
         if (children.size() == 1) {
             return varSymbol.getLlvmValue();
-        } else { // 数组
+        } else { // 数组 只可能是x[const]的形式
             LLVMType eleType;
             if (varSymbol.getLlvmType() instanceof PointerType) {
                 eleType = ((PointerType) varSymbol.getLlvmType()).getReferencedType();

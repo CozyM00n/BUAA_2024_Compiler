@@ -38,7 +38,7 @@ public class GEPInstr extends Instr{
     public String toString() {
         LLVMType pointerType = pointer.getLlvmType();
         LLVMType refType = ((PointerType) pointer.getLlvmType()).getReferencedType();
-        if (refType instanceof ArrayType) {
+        if (refType instanceof ArrayType) { // inbound
             return name + " = getelementptr " + refType + ", " + pointerType + " "
                     + pointer.getName() + ", i32 0, i32 " + offset.getName();
         } else {

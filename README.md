@@ -166,6 +166,13 @@ else { // PrimaryExp
 
 离开作用域时，我们调用 `popTable` 函数，返回上一层作用域的符号表，更新`curTableId`为其父亲符号表的值。
 
+具体地，有如下情况进行了符号表的新建和更新：
+
+```
+CompUnit，语义分析阶段建立新的符号表并加入；中间代码生成设置当前符号表ID=1
+MainFuncDef/FuncDef，语义分析建立新的符号表并加入，Block的checkError会记录该Block对应的符号表id
+```
+
 ### 如何打印
 
 词法成分：Token的`toString()`方法：`<tokenType> <value> \n` ，自带换行。例：`LPARENT ( \n`， `IDENFR num \n`
@@ -248,7 +255,7 @@ store i32 %2, i32* %1, align 4 ; 将寄存器%2的值存入寄存器%1表示的�
 2. 设置`symbol`的`llvmType`属性。
 3. `symbol`的`InitInfo`属性：
    - 对于全局变量/常量，设置`symbol.InitInfo`属性。
-     - 如果有`=`为其赋值，`InitInfo`中的`InitValues`字段为一个初值数组。特别地，如果是字符串为char数组赋值，对应`str`不为`null`，而是对应长度（补完`\0`）的字符串。
+     - 如果有`=`为其赋值，`InitInfo`中的`InitValues`字段为一个初值数组（根据len补齐0）。特别地，如果是字符串为char数组赋值，对应`str`不为`null`，而是对应长度（补完`\0`）的字符串。
      - 如果未赋值，`InitInfo`中的`InitValues`字段为`null`。
    - 对于局部变量，其初始值无法直接计算，其`symbol.InitInfo = null`。
 4. 设置`symbol`的`llvmValue`属性。
@@ -274,7 +281,7 @@ public class InitInfo {
     // 这里的Initial特指编译时就能计算出结果（Int）的初始值
     // 包括全局变量 全局常量 局部常量
     private LLVMType llvmType;
-    private ArrayList<Integer> initValue;
+    private ArrayList<Integer> initValues;
     private String initString;
 }
 ```
@@ -299,11 +306,11 @@ public class InitInfo {
 
 1. 新建`Function`并设为`FuncSymbol`的`llvmValue`。
 
-2. 遍历参数表，为每一个参数生成一个`Param`设置为符号的`llvmValue`。对于符号的`llvmType`，**如果参数是数组，`llvmType`将是一个指向数组元素类型（int32/8）的指针**，否则就是元素的正常类型。
+2. 遍历参数表，为每一个参数生成一个`Param`设置为（varSymbol）符号的`llvmValue`。对于符号的`llvmType`，**如果参数是数组，`llvmType`将是一个指向数组元素类型（int32/8）的指针**，否则就是元素的正常类型。
 
 3. **新建**`BasicBlock`+在`IRManager`中**更新**`curBlock`为当前`Block`
 
-4. 为**参数**生成所需要的中间代码。具体地，为该参数对应的`varSymbol`设置`llvmValue`。如果是数组，`llvmValue`就是`param`；**如果是非数组，需要复制形参信息，要新`alloc`一块新内存并将`param`作为`from`存入**。
+4. 为**参数**生成所需要的中间代码。具体地，为该参数对应的`varSymbol`设置`llvmValue`。如果是数组，`llvmValue`就是`param`；**如果是非数组，需要复制形参信息，要新`alloc`一块新内存并将`param`作为`from`存入**，`alloc`覆盖了原来的`llvmValue`。（见`FuncFParam.generateIR`）
 
 5. 调用`Block`生成中间代码
 
@@ -329,20 +336,20 @@ public class Function extends User {
 
 #### 数组
 
-```c
-// 局部变量
-int arr[5] = {1, 2, 3};
-const int arr1[5] = {1, 2, 3};
-
-char ch[10] = "hello"; // 剩下的需要置0
-const char ch1[10] = "hello";
-```
-
 ##### GEP指令
 
+`getelementptr`指令的工作是计算地址，本身不对数据做任何访问与修改。考虑数组 `a[5]`，需要获取 `a[3]` 的地址，有如下两种写法：
 
+```javascript
+; 方法一，是一个指向5xi32的一维数组的指针，第一维偏移为0，第二维偏移3
+%1 = getelementptr [5 x i32], [5 x i32]* @a, i32 0, i32 3
 
+; 方法二
+%2 = getelementptr [5 x i32], [5 x i32]* @a, i32 0, i32 0
+%3 = getelementptr i32, i32* %2, i32 3
+```
 
+当数组作为参数时，需要先将其转换为指针类型，即方法二中的第一条指令。在被调用的函数中，对于指针类型的参数，使用方法二中的第二条指令即可获取对应下标元素的地址。
 
 #### 条件语句
 

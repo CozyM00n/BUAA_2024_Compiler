@@ -35,18 +35,27 @@ public class VarDef extends Node {
         super(type, children);
     }
 
+
     public boolean judgeIsArray() {
         return children.size() >= 2 && ((TokenNode)children.get(1)).getTokenType() == TokenType.LBRACK;
     }
-
-    // 语义分析阶段调用 只有最基本的：name + typeInfo
-    public VarSymbol createSymbol() {
+    public VarSymbol createSymbol() { // 语义分析阶段调用 只有最基本的：name + typeInfo
         String symbolName = ((TokenNode) children.get(0)).getTokenValue();
         TypeInfo typeInfo = new TypeInfo(judgeIsArray(), SymbolManager.getInstance().getDeclaredType());
         return new VarSymbol(typeInfo, symbolName);
     }
+    @Override
+    public void checkError() { // b 变量名字重定义
+        super.checkError();
+        this.varSymbol = createSymbol();
+        if (!SymbolManager.getInstance().addSymbol(varSymbol)) {
+            Printer.addError(new Error(((TokenNode) children.get(0)).getLino(), 'b'));
+        }
+    }
 
-    // 中间代码生成调用
+
+    /****** for llvm ********/
+    //中间代码生成调用,设置symbol的llvmType属性
     public void setSymLlvmType() {
         TypeInfo typeInfo = varSymbol.getTypeInfo();
         LLVMType eleType; // 判断元素类型
@@ -66,7 +75,7 @@ public class VarDef extends Node {
         ArrayList<Integer> initValues = null; String str = null;
         int len;
         LLVMType type = varSymbol.getLlvmType();
-        if (type instanceof ArrayType) len = ((ArrayType) type).getLength();
+        if (type instanceof ArrayType) len = ((ArrayType) type).getLength(); // 数组[constexp] evaluate得到
         else len = 0;
         // 仅当var有初始值时，initValues 不为 null
         if (children.get(children.size() - 1) instanceof InitVal) {
@@ -79,28 +88,21 @@ public class VarDef extends Node {
     }
 
     @Override
-    public void checkError() { // b 变量名字重定义
-        super.checkError();
-        this.varSymbol = createSymbol();
-        if (!SymbolManager.getInstance().addSymbol(varSymbol)) {
-            Printer.addError(new Error(((TokenNode) children.get(0)).getLino(), 'b'));
-        }
-    }
-
-    @Override
     public Value generateIR() {
         // genIR阶段 每当遍历到变量定义的时候 实时更新curSymbolId
         curSymbolId = varSymbol.getSymbolId();
-        setSymLlvmType();
+        this.setSymLlvmType();
         LLVMType llvmType = varSymbol.getLlvmType();
+
         if (varSymbol.isGlobal()) { // 全局变量
-            setSymbolInitInfo();
+            this.setSymbolInitInfo();
             InitInfo initInfo = varSymbol.getInitInfo();
             String name = "@" + varSymbol.getSymbolName();
             GlobalVar globalVar = new GlobalVar(name, llvmType, initInfo);
             varSymbol.setLlvmValue(globalVar);
             return null;
         }
+
         // 非数组局部变量
         if (!varSymbol.getTypeInfo().getIsArray()) {
             Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);
@@ -112,6 +114,7 @@ public class VarDef extends Node {
                 StoreInstr.checkAndGenStoreInstr(from, alloc);
             }
         }
+
         else { // 数组类型
             // 新建指向数组的指针
             Instr alloc = new AllocaInstr(IRManager.getInstance().genVRName(), llvmType);

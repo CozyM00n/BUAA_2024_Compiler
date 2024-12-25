@@ -115,7 +115,7 @@ public class SymbolManager {
     }
 
     public TypeInfo.typeInfo getDeclaredType() {
-        // 语义分析阶段：定义变量时记录declare的类型
+        // 语义分析阶段：定义变量时记录declare的类型，以便createSymbol时使用
         return declaredType;
     }
     public void setDeclaredType(TypeInfo.typeInfo declaredType) {
@@ -131,7 +131,7 @@ public class SymbolManager {
 
 
     /*** function ***/
-    // 每到函数定义都要在此更新FuncSymbol，以便之后获得返回值类型
+    // for checkErr && genIR 每到函数定义都要在此更新FuncSymbol，以便之后获得返回值类型
     public void setCurFuncSymbol(FuncSymbol curFuncSymbol) {
         this.curFuncSymbol = curFuncSymbol;
     }

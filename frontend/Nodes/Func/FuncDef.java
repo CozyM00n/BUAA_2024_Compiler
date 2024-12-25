@@ -75,6 +75,8 @@ public class FuncDef extends Node {
         }
     }
 
+
+    /** for llvm **/
     public void setFuncSymLLVMValue() {
         LLVMType retType;
         switch (funcSymbol.getReturnType()) {
@@ -89,9 +91,12 @@ public class FuncDef extends Node {
 
     @Override
     public Value generateIR() {
+        //SymbolManager.getInstance().setGlobal(false);
         SymbolManager.getInstance().setCurFuncSymbol(funcSymbol);
-        setFuncSymLLVMValue();
+        this.setFuncSymLLVMValue();
+
         IRManager.getInstance().addAndSetCurFunc(funcSymbol.getLlvmValue());
+
         // 遍历所有FuncFParam，设置参数的llvmType和llvmValue
         if (children.get(3) instanceof FuncFParams) {
             for (Node node : children.get(3).getChildren()) {
@@ -101,19 +106,22 @@ public class FuncDef extends Node {
                 }
             }
         }
+
         // 为函数新建基本块
         BasicBlock block = new BasicBlock(IRManager.getInstance().genBlockName());
         IRManager.getInstance().addAndSetCurBlock(block);
+
+        // 参数对应的中间代码
         if (children.get(3) instanceof FuncFParams) {
             (children.get(3)).generateIR();
         }
-        children.get(children.size() - 1).generateIR(); // Block
+        children.get(children.size() - 1).generateIR(); // Block生成中间代码
+
         // 如果void没有return，需要补全返回语句
         if (!(IRManager.getInstance().getLastInstr() instanceof ReturnInstr)
                 && funcSymbol.getReturnType() == ReturnType.RETURN_VOID) {
-            ReturnInstr.checkAndGenRet(null, null);
+            ReturnInstr.checkAndGenRet(null, VoidType.VOID);
         }
-        // todo 建立新的Block？
         return null;
     }
 }

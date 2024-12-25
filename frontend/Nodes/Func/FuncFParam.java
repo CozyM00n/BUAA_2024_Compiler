@@ -42,16 +42,13 @@ public class FuncFParam extends Node {
             return TypeInfo.typeInfo.CHAR_TYPE;
         }
     }
-
     public VarSymbol createSymbol() {
         TypeInfo typeInfo = new TypeInfo(judgeIsArray(), judgeType());
         return new VarSymbol(typeInfo, ((TokenNode) children.get(1)).getTokenValue());
     }
-
     public VarSymbol getVarSymbol() {
         return varSymbol;
     }
-
     @Override
     public void checkError() {
         // b 名字重定义 报错Ident
@@ -63,6 +60,8 @@ public class FuncFParam extends Node {
         }
         super.checkError();
     }
+
+
 
     public void updateCurSymbolId() {
         assert curSymbolId == varSymbol.getSymbolId() - 1;

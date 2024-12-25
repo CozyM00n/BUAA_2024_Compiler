@@ -1,5 +1,0 @@
-int main() {
-    char c = '\t';
-    printf("1%c1",c);
-    return 0;
-}

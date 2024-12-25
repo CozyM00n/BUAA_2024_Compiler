@@ -12,7 +12,7 @@ public class FuncFParams extends Node {
         super(type, children);
     }
 
-    public ArrayList<TypeInfo> getFParamsType() {
+    public ArrayList<TypeInfo> getFParamsType() { // for checkErr
         ArrayList<TypeInfo> typeList = new ArrayList<>();
         for (Node child : children) {
             if (child instanceof FuncFParam) {
