@@ -74,7 +74,7 @@ public class MipsManager {
 
     /** changeName ***/
     public String getStringLiteralName(String s) {
-        // from llvm name to mips label
+        // from llvm name (@.str.2) to mips label
         return s.substring(2).replace(".", "_")
                 .replace("str", "_s_");
     }

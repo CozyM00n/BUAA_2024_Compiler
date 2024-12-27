@@ -41,14 +41,13 @@ public class LAndExp extends Node {
         for (int i = 0; i < children.size(); i += 2) {
             if (i == children.size() - 1) {
                 Value eqExp = children.get(i).generateIR();
-                genBranchInstr(eqExp, trueBlock, falseBlock);
+                this.genBranchInstr(eqExp, trueBlock, falseBlock);
             }
             else {
                 BasicBlock nextBlock = new BasicBlock(IRManager.getInstance().genBlockName());
                 Value eqExp = children.get(i).generateIR(); // 这里eqExp仍有可能是i32/i1
-                genBranchInstr(eqExp, nextBlock, falseBlock);
+                this.genBranchInstr(eqExp, nextBlock, falseBlock);
                 IRManager.getInstance().addAndSetCurBlock(nextBlock);
-                // IRManager.getInstance().resetBlockName(nextBlock);
             }
         }
     }

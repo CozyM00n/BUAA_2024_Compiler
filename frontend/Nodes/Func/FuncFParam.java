@@ -74,7 +74,7 @@ public class FuncFParam extends Node {
         if (varSymbol.getTypeInfo().getType() == TypeInfo.typeInfo.INT_TYPE)
             intType = IntType.INT32;
         else intType = IntType.INT8;
-        // 如果是数组，该参数类型符号的llvmType是一个指向数组元素类型的指针
+        // 如果是数组，该参数类型符号的llvmType是一个指向数组元素类型的指针,llvmValue就是这个param
         LLVMType llvmType = varSymbol.getTypeInfo().getIsArray() ? new PointerType(intType) : intType;
         Param param = new Param(IRManager.getInstance().genVRName(), llvmType);
         varSymbol.setLlvmType(llvmType);
@@ -91,6 +91,13 @@ public class FuncFParam extends Node {
             // 把形参的值存入
             StoreInstr.checkAndGenStoreInstr(param, alloca);
         }
+//        else {
+//            // 为数组参数创建新的指针类型，并将首地址存入
+//            //LLVMType eleType = ((PointerType)param.getLlvmType()).getReferencedType();
+//            Instr alloca = new AllocaInstr(IRManager.getInstance().genVRName(), param.getLlvmType());
+//            varSymbol.setLlvmValue(alloca);
+//            StoreInstr.checkAndGenStoreInstr(param, alloca);
+//        }
         return null;
     }
 }

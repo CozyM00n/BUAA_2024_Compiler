@@ -34,8 +34,8 @@ public class AssignStmt extends Stmt{
 
     @Override
     public Value generateIR() {
-        Value lVal = ((LValExp) children.get(0)).genIRForAssign();
         Value expVal = children.get(2).generateIR();
+        Value lVal = ((LValExp) children.get(0)).genIRForAssign();
         return StoreInstr.checkAndGenStoreInstr(expVal, lVal);
     }
 }

@@ -7,10 +7,7 @@ import BackEnd.Mips.MipsManager;
 import BackEnd.Mips.Register;
 import Enums.InstrType;
 import llvm_IR.IRManager;
-import llvm_IR.llvm_Types.IntType;
-import llvm_IR.llvm_Types.LLVMType;
-import llvm_IR.llvm_Types.PointerType;
-import llvm_IR.llvm_Types.VoidType;
+import llvm_IR.llvm_Types.*;
 import llvm_IR.llvm_Values.Constant;
 import llvm_IR.llvm_Values.GlobalVar;
 import llvm_IR.llvm_Values.Value;
@@ -23,20 +20,24 @@ public class StoreInstr extends Instr {
     // store i32 %1, i32* %3
     // to <= from;
     public static StoreInstr checkAndGenStoreInstr(Value from, Value to) {
-        assert from.getLlvmType() instanceof IntType;
+        //assert from.getLlvmType() instanceof IntType;
         assert to.getLlvmType() instanceof PointerType;
         LLVMType toType = ((PointerType) to.getLlvmType()).getReferencedType();
         if (from.getLlvmType() != toType) {
             if (from instanceof Constant) {
                 ((Constant) from).switchType(toType);
             }
-            else {
+            else if (from.getLlvmType() instanceof IntType) {
                 if (((IntType) from.getLlvmType()).getLength() < ((IntType) toType).getLength()) {
                     from = new ZextInstr(IRManager.getInstance().genVRName(), from, toType);
                 }
                 else {
                     from = new TruncInstr(IRManager.getInstance().genVRName(), from, toType);
                 }
+            }
+            else {
+                // 获取from数组的首地址
+                //to = new PointerType()
             }
         }
         return new StoreInstr(from, to);
@@ -48,13 +49,12 @@ public class StoreInstr extends Instr {
         this.from = from;  this.to = to;
     }
 
-    public Value getFrom() {
-        return from;
+    @Override
+    public String toString() {
+        return "store " + from.getLlvmType() + " " + from.getName()
+                + ", " + to.getLlvmType() + " " + to.getName();
     }
 
-    public Value getTo() {
-        return to;
-    }
 
     @Override
     public void genAsm() {
@@ -80,11 +80,5 @@ public class StoreInstr extends Instr {
         }
         // sw $t0, 8($t1)
         new MemoryAsm(MemoryAsm.memOp.SW, fromReg, 0, toReg);
-    }
-
-    @Override
-    public String toString() {
-        return "store " + from.getLlvmType() + " " + from.getName()
-                + ", " + to.getLlvmType() + " " + to.getName();
     }
 }

@@ -8,6 +8,7 @@ import BackEnd.Mips.MipsManager;
 import BackEnd.Mips.Register;
 import Enums.InstrType;
 import llvm_IR.llvm_Types.ArrayType;
+import llvm_IR.llvm_Types.IntType;
 import llvm_IR.llvm_Types.LLVMType;
 import llvm_IR.llvm_Types.PointerType;
 import llvm_IR.llvm_Values.Constant;
@@ -41,10 +42,21 @@ public class GEPInstr extends Instr{
         if (refType instanceof ArrayType) { // inbound
             return name + " = getelementptr " + refType + ", " + pointerType + " "
                     + pointer.getName() + ", i32 0, i32 " + offset.getName();
-        } else {
+        } else if (refType instanceof IntType){
             return name + " = getelementptr " + refType + ", " + pointerType + " "
                     + pointer.getName() + ", i32 " + offset.getName();
         }
+        else {
+            System.out.println("GEPInstr: err");
+            return name + " = getelementptr " + refType + ", " + pointerType + " "
+                    + pointer.getName() + ", i32 " + offset.getName();
+        }
+//        else if (refType instanceof PointerType){
+//            refType = ((PointerType) refType).getReferencedType();
+//            pointerType = ((PointerType) pointerType).getReferencedType();
+//            return name + " = getelementptr " + refType + ", " + pointerType + " "
+//                    + pointer.getName() + ", i32 " + offset.getName();
+//        }
     }
 
     public void loadPointerToReg(Value pointer, Register reg) {

@@ -41,16 +41,17 @@ public class ForBodyStmt extends Stmt {
             }
         }
         SymbolManager.getInstance().enterLoop();
-        for(int i = 0; i < children.size(); ++i) {
-            if (i == 1) {
-                SymbolManager.getInstance().pushTable();
-            }
-            else {
-                children.get(i).checkError();
-            }
-        }
-        this.symbolTableId = SymbolManager.getCurTableId();
-        SymbolManager.getInstance().popTable();
+//        for(int i = 0; i < children.size(); ++i) {
+//            if (i == 1) {
+//                SymbolManager.getInstance().pushTable();
+//            }
+//            else {
+//                children.get(i).checkError();
+//            }
+//        }
+//        this.symbolTableId = SymbolManager.getCurTableId();
+//        SymbolManager.getInstance().popTable();
+        super.checkError();
         SymbolManager.getInstance().leaveLoop();
     }
 
@@ -58,7 +59,7 @@ public class ForBodyStmt extends Stmt {
     public Value generateIR() {
         SymbolManager.getInstance().enterLoop();
         // 进入for的符号表
-        SymbolManager.setCurTableId(symbolTableId);
+        //SymbolManager.setCurTableId(symbolTableId);
         BasicBlock condBlock = new BasicBlock(IRManager.getInstance().genBlockName());
         BasicBlock forBodyBlock = new BasicBlock(IRManager.getInstance().genBlockName());
         BasicBlock followBlock = new BasicBlock(IRManager.getInstance().genBlockName());
@@ -88,7 +89,7 @@ public class ForBodyStmt extends Stmt {
         IRManager.getInstance().addAndSetCurBlock(followBlock);
         IRManager.getInstance().popLoop();
         SymbolManager.getInstance().leaveLoop();
-        SymbolManager.setCurTableId(SymbolManager.getInstance().getFatherTableId(symbolTableId));
+        // SymbolManager.setCurTableId(SymbolManager.getInstance().getFatherTableId(symbolTableId));
         return null;
     }
 }
